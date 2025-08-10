@@ -1,0 +1,9 @@
+{
+    "require": {
+        "firebase/php-jwt": "^6.11",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "autoload": {
+        "classmap": ["includes/"]
+    }
+}
