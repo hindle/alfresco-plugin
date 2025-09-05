@@ -24,6 +24,19 @@ class AlfrescoPHDownload {
         }
 
         $filePath = ABSPATH . '/wp-content/uploads/private/' . basename($file);
+
+        if (!file_exists($filePath)) {
+            $to = ["ah.hindle@gmail.com", "hollie@alfrescolearning.co.uk", "jenny@alfrescolearning.co.uk"];
+            $subject = "[IMPORTANT] Planning Hub file download failed";
+            $content = "File: " . $file;
+
+            wp_mail($to, $subject, $content);
+            
+            throw new Exception('File not found');
+            return;
+        }
+
+        $this->logOutsetaEvent($userDetails['userId'], basename($file));
         readfile($filePath);
     }
 
@@ -59,7 +72,8 @@ END;
         $userData = [
             "email" => $decodedToken->email,
             "accountId" => $decodedToken->{'outseta:accountUid'},
-            "name" => $decodedToken->name
+            "name" => $decodedToken->name,
+            "userId" => $decodedToken->nameid
         ];
 
         return $userData;
@@ -72,17 +86,15 @@ END;
         $apiKey = 'Outseta 594812bb-d3fb-4f55-b560-94ff33591356:28a14318ff70b729549d5e6ec569b15b';
         $url = "https://alfresco-learning.outseta.com/api/v1/crm/accounts/" . $userDetails['accountId'];
 
-        $client = new Client();
-
-        $headers = [
+        $headers = ['headers' => [
             'Content-Type' => 'application/json',
             'Authorization' => $apiKey
-        ];
-        
-        $request = new Request('GET', $url, $headers);
+        ]];
 
+        $client = new Client($headers);
+        
         try {
-            $response = $client->send($request);
+            $response = $client->request('GET', $url);
         } catch (Exception $e) {
             error_log('Error calling Outseta: ' . $e->getMessage());
             return false;
@@ -97,6 +109,33 @@ END;
         }
 
         return false;
+    }
+
+    /*
+     * Log the download event in Outseta
+     */
+    private function logOutsetaEvent($user, $file) {
+        $apiKey = 'Outseta 594812bb-d3fb-4f55-b560-94ff33591356:28a14318ff70b729549d5e6ec569b15b';
+        $url = "https://alfresco-learning.outseta.com/api/v1/activities/customactivity";
+
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+            'Authorization' => $apiKey
+        ]];
+
+        $client = new Client($headers);
+        $body = ['json' => [
+            "Title" => "Planning download",
+            "Description" => "Downloaded " . $file . " planning file",
+            "EntityType" => 2,
+            "EntityUid" => $user
+        ]];
+
+        try {
+            $response = $client->request('POST', $url, $body);
+        } catch (Exception $e) {
+            error_log('Error calling Outseta: ' . $e->getMessage());
+        }
     }
 
     /*

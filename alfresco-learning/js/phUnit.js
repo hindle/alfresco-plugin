@@ -13,8 +13,8 @@ function phUnitSetup() {
 
             const loggedIn = outsetaIsLoggedIn();
             if (!loggedIn) {
-                // @TODO redirect to a new page with login or subscribe options - to be created
 				console.log("not logged in, redirecting to login");
+                window.location.href = "/planning-hub/signup";
 				return;
             }
 
@@ -35,7 +35,7 @@ function phUnitSetup() {
             fetch(url, requestParams)
                 .then((response) => {
                     if (!response.ok) {
-                        throw new Error(`ajax call failed: ${repsonse.status}`);
+                        throw new Error(`ajax call failed: ${response.status}`);
                     }
                     buttonTrigger.style.pointerEvents = "auto";
                     return response.blob();

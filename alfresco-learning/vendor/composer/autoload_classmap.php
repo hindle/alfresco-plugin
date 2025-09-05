@@ -7,6 +7,13 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'AlfrescoAJAX' => $baseDir . '/includes/AlfrescoAJAX.php',
+    'AlfrescoInvoice' => $baseDir . '/includes/AlfrescoInvoice.php',
     'AlfrescoPHDownload' => $baseDir . '/includes/AlfrescoPHDownload.php',
+    'AlfrescoTraining' => $baseDir . '/includes/AlfrescoTraining.php',
+    'AlfrescoTrello' => $baseDir . '/includes/AlfrescoTrello.php',
+    'AlfrescoWorkshopCastles' => $baseDir . '/includes/AlfrescoWorkshopCastles.php',
+    'AlfrescoWorkshopGFOL' => $baseDir . '/includes/AlfrescoWorkshopGFOL.php',
+    'AlfrescoWorkshopSeaside' => $baseDir . '/includes/AlfrescoWorkshopSeaside.php',
+    'AlfrescoWorkshopSpace' => $baseDir . '/includes/AlfrescoWorkshopSpace.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );

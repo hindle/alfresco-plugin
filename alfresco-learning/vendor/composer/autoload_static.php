@@ -60,7 +60,14 @@ class ComposerStaticInit20fad51902f91e7fd3039e016a6556b5
 
     public static $classMap = array (
         'AlfrescoAJAX' => __DIR__ . '/../..' . '/includes/AlfrescoAJAX.php',
+        'AlfrescoInvoice' => __DIR__ . '/../..' . '/includes/AlfrescoInvoice.php',
         'AlfrescoPHDownload' => __DIR__ . '/../..' . '/includes/AlfrescoPHDownload.php',
+        'AlfrescoTraining' => __DIR__ . '/../..' . '/includes/AlfrescoTraining.php',
+        'AlfrescoTrello' => __DIR__ . '/../..' . '/includes/AlfrescoTrello.php',
+        'AlfrescoWorkshopCastles' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopCastles.php',
+        'AlfrescoWorkshopGFOL' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopGFOL.php',
+        'AlfrescoWorkshopSeaside' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopSeaside.php',
+        'AlfrescoWorkshopSpace' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopSpace.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 

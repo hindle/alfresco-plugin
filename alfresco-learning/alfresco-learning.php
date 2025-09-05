@@ -17,7 +17,10 @@ class Alfresco {
         $this->registerCustomPostTypes();
         $this->registerAJAXFunctions();
         $this->setupOutseta();
+        $this->setupMailerlite();
+        $this->setupGoogleAnalytics();
         $this->registerScripts();
+        $this->onboardingLoginCheck();
     }
 
     /*
@@ -55,6 +58,15 @@ class Alfresco {
         });
 
         add_action('init', function() {
+            register_taxonomy('planning-category', [], [
+                'label' => 'Planning Category',
+                'public' => true,
+                'hierarchical' => false,
+                'show_in_rest' => true
+            ]);
+        });
+
+        add_action('init', function() {
             register_post_type('al_planning_unit',[
                 'labels' => [
                     'name' => 'Planning Units',
@@ -72,6 +84,7 @@ class Alfresco {
         add_action('init', function() {
             register_taxonomy_for_object_type('year-group', 'al_planning_unit');
             register_taxonomy_for_object_type('subject', 'al_planning_unit');
+            register_taxonomy_for_object_type('planning-category', 'al_planning_unit');
         });
     }
 
@@ -104,7 +117,7 @@ class Alfresco {
                     const accessToken = redirectURL.searchParams.get('access_token');
 
                     if (accessToken) {
-                        const newRedirectURL = new URL("/hub-unit/test-unit", window.origin);
+                        const newRedirectURL = new URL("/planning-hub/units", window.origin);
                         newRedirectURL.searchParams.set('access_token', accessToken);
                         window.location.href = newRedirectURL.href;
                         return false;
@@ -112,6 +125,44 @@ class Alfresco {
                 });
             </script>
             <?php
+        });
+    }
+
+    /*
+     * Add the Mailerlite scripts to the Head
+     */
+    private function setupMailerlite() {
+        add_action('wp_head', function() {
+        ?>
+            <script>
+                (function(m,a,i,l,e,r){ m['MailerLiteObject']=e;function f(){
+                var c={ a:arguments,q:[]};var r=this.push(c);return "number"!=typeof r?r:f.bind(c.q);}
+                f.q=f.q||[];m[e]=m[e]||f.bind(f.q);m[e].q=m[e].q||f.q;r=a.createElement(i);
+                var _=a.getElementsByTagName(i)[0];r.async=1;r.src=l+'?v'+(~~(new Date().getTime()/1000000));
+                _.parentNode.insertBefore(r,_);})(window, document, 'script', 'https://static.mailerlite.com/js/universal.js', 'ml');
+
+                var ml_account = ml('accounts', '2344751', 'd5t1g6z7h7', 'load');
+            </script>
+        <?php
+        });
+    }
+
+    /*
+     * Add Google analytics script
+     */
+    private function setupGoogleAnalytics() {
+        add_action('wp_head', function() {
+        ?>
+            <!-- Google tag (gtag.js) -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-LLS9GKDT7C"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+
+                gtag('config', 'G-LLS9GKDT7C');
+            </script>
+        <?php
         });
     }
 
@@ -126,6 +177,16 @@ class Alfresco {
         });
     }
 
+    /*
+     * Check login for workshop onboarding pages
+     */
+    public function onboardingLoginCheck() {
+        add_action('template_redirect', function() {
+            if (!is_user_logged_in() && (is_page('workshop-onboarding') || is_page(9302) || is_page(9304) || is_page(9306))) {
+                auth_redirect();
+            } 
+        });
+    }
 }
 
 $alfresco = new Alfresco();
