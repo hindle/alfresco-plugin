@@ -26,6 +26,12 @@ class AlfrescoAJAX {
 
         add_action('wp_ajax_nopriv_ALFRESCO_TRAINING', [$this, 'handleTrainingForm']);
         add_action('wp_ajax_ALFRESCO_TRAINING', [$this, 'handleTrainingForm']);
+
+        add_action('wp_ajax_nopriv_ALFRESCO_FEEDBACK_NEUTRAL', [$this, 'handleFeedbackFormNeutral']);
+        add_action('wp_ajax_ALFRESCO_FEEDBACK_NEUTRAL', [$this, 'handleFeedbackFormNeutral']);
+
+        add_action('wp_ajax_nopriv_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
+        add_action('wp_ajax_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
     }
 
     /*
@@ -166,7 +172,7 @@ class AlfrescoAJAX {
     }
 
     /*
-     * Handle Invoice enqiry submission
+     * Handle Training enqiry submission
      */
     public function handleTrainingForm() {
         $requestBody = file_get_contents('php://input');
@@ -183,6 +189,47 @@ class AlfrescoAJAX {
 
         try {
             $trainingHandler->saveData();
+        } catch (Exception $e) {
+            echo 'Error saving data';
+			http_response_code(400);
+			exit();
+        }
+
+        echo 'Data saved';
+    }
+
+    /*
+     * Handle neutral feedback submission
+     */
+    public function handleFeedbackFormNeutral() {
+        $this->handleFeedbackForm('NEUTRAL');
+    }
+
+    /*
+     * Handle negative feedback submission
+     */
+    public function handleFeedbackFormNegative() {
+        $this->handleFeedbackForm('NEGATIVE');
+    }
+
+    /*
+     * Handle feedback submission
+     */
+    public function handleFeedbackForm($type) {
+        $requestBody = file_get_contents('php://input');
+        $data = json_decode($requestBody);
+
+        $feedbackHandler = new AlfrescoFeedback($type, $data);
+
+        $dataValid = $feedbackHandler->validateData();
+        if (!$dataValid) {
+            echo 'Invalid data';
+            http_response_code(400);
+			exit();
+        }
+
+        try {
+            $feedbackHandler->saveData();
         } catch (Exception $e) {
             echo 'Error saving data';
 			http_response_code(400);

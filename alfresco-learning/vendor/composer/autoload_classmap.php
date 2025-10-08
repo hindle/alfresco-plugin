@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'AlfrescoAJAX' => $baseDir . '/includes/AlfrescoAJAX.php',
+    'AlfrescoFeedback' => $baseDir . '/includes/AlfrescoFeedback.php',
     'AlfrescoInvoice' => $baseDir . '/includes/AlfrescoInvoice.php',
     'AlfrescoPHDownload' => $baseDir . '/includes/AlfrescoPHDownload.php',
     'AlfrescoTraining' => $baseDir . '/includes/AlfrescoTraining.php',

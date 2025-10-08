@@ -28,13 +28,23 @@ class AlfrescoPHDownload {
         if (!file_exists($filePath)) {
             $to = ["ah.hindle@gmail.com", "hollie@alfrescolearning.co.uk", "jenny@alfrescolearning.co.uk"];
             $subject = "[IMPORTANT] Planning Hub file download failed";
-            $content = "File: " . $file;
+            $content = "File: " . $file . "\n\nUser ID: " . $userDetails['userId'];
 
             wp_mail($to, $subject, $content);
             
             throw new Exception('File not found');
             return;
         }
+
+        error_log('attempting to set content header');
+
+        add_filter('wp_headers', function($headers) {
+            error_log(print_r($headers, true));
+            $headers['Content-Type'] = 'application/pdf';
+            $headers['Content-Disposition'] = 'attachment';
+            $headers['Foo'] = 'Bar';
+            return $headers;
+        });
 
         $this->logOutsetaEvent($userDetails['userId'], basename($file));
         readfile($filePath);

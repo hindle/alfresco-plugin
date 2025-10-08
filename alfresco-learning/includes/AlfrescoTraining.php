@@ -84,7 +84,7 @@ class AlfrescoTraining {
             $this->contactEmail . "\n" .
             "\n" .
             "**Training session**" . "\n" .
-            $this->trainingSession . "\n" .
+            $trainingSession . "\n" .
             "\n" . 
             "**Date** \n" .
             $this->bookingDate . "\n" .
@@ -103,8 +103,6 @@ class AlfrescoTraining {
      * Send the email notification
      * 
      * @TODO get the ID of the card from the create call and include a link to the card in the email
-     * 
-     * @TODO add the correct email addresses in
      */
     private function sendEmail($trainingSession) {
         $to = ["hollie@alfrescolearning.co.uk", "jenny@alfrescolearning.co.uk"];

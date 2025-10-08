@@ -41,7 +41,8 @@ function phUnitSetup() {
                     return response.blob();
                 })
                 .then((responseObject) => {
-                    const fileUrl = URL.createObjectURL(responseObject);
+                    const fileObject = new Blob([responseObject], { type: "application/pdf" });
+                    const fileUrl = URL.createObjectURL(fileObject);
                     let link = document.createElement('a');
                     link.href = fileUrl;
                     link.download = file;

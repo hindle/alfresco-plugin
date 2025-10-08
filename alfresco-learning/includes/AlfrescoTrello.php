@@ -88,4 +88,31 @@ class AlfrescoTrello {
             throw new Exception('Failed to create Trello card');
         }
     }
+
+    /*
+     * Add a Trello card for workshop feedback
+     */
+    public function createFeedbackCard($school, $feedbackType, $content) {
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+        ]];
+
+        $client = new Client($headers);
+
+        $params = ['query' => [
+            'name' => $feedbackType . ' - ' . $school,
+            'desc' => $content,
+            'pos' => 'top',
+            'idList' => '67332ed4270414b79840edd4',
+            'key' => $this->apiKey,
+            'token' => $this->apiToken
+        ]];
+
+        try {
+            $client->request('POST', $this->url, $params);
+        } catch (Exception $e) {
+            echo 'Error calling Trello: ' . $e->getMessage();
+            throw new Exception('Failed to create Trello card');
+        }
+    }
 }
