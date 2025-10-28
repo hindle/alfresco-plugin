@@ -6,9 +6,6 @@ class AlfrescoAJAX {
      * Register functions with hooks
      */
     public function register() {
-        add_action('wp_ajax_nopriv_ALFRESCO_PH_DOWNLOAD', [$this, 'handlePHDownload']);
-        add_action('wp_ajax_ALFRESCO_PH_DOWNLOAD', [$this, 'handlePHDownload']);
-
         add_action('wp_ajax_nopriv_ALFRESCO_WORKSHOP_GFOL', [$this, 'handleWorkshopFormGFoL']);
         add_action('wp_ajax_ALFRESCO_WORKSHOP_GFOL', [$this, 'handleWorkshopFormGFoL']);
 
@@ -32,41 +29,73 @@ class AlfrescoAJAX {
 
         add_action('wp_ajax_nopriv_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
         add_action('wp_ajax_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
+
+        $this->downloadEndpoint();
     }
 
     /*
-     * Handle Planning Hub file download
+     * Register download endpoint to handle PH file downloads
      */
-    public function handlePHDownload() {
-        // retrieve request body and validate correct data has been sent
-        $requestBody = file_get_contents('php://input');
-        $data = json_decode($requestBody);
+    private function downloadEndpoint() {
+        add_action( 'rest_api_init', function () {
+	        register_rest_route(
+		        "alfresco/v1",
+		        "/download",
+		        [
+			        'methods'             => \WP_REST_Server::READABLE,
+			        'permission_callback' => '__return_true',
+			        'callback'            => function (\WP_REST_Request $request) {
 
-        if(!$data->outsetaToken || $data->outsetaToken == null) {
-            echo 'Missing Outseta token';
-			http_response_code(400);
-			exit();
+                        try {
+                            $fileUrl = $this->handleDownload($request);
+                        } catch (Exception $e) {
+                            $error = $e->getMessage();
+                            $response = new WP_REST_Response("{'error':'$error'}");
+                            $response->set_status(400);
+                            return $response;
+                        }
+
+                        $encodedUrl = base64_encode($fileUrl);
+                        $responseBody = ['file' => $encodedUrl];
+                        return $responseBody;
+			        },
+		        ]
+	        );
+        });
+    }
+
+    /*
+     * Handle file download request
+     * 
+     * Validate Outseta token and then retrieve the file
+     */
+    private function handleDownload($request) {
+        // retrieve request params and validate correct data has been sent        
+        $params = $request->get_query_params();
+
+        if(!$_COOKIE['Outseta_nocode_accessToken'] || $_COOKIE['Outseta_nocode_accessToken']  == null) {
+            throw new Exception('Missing Outseta token');
+            return;
         }
 
-        if(!$data->file || $data->file === null) {
-            echo 'Missing requested file name';
-			http_response_code(400);
-			exit();
+        if(!$params['file'] || $params['file'] === null) {
+            throw new Exception('Missing requested file name');
+            return;
         }
 
-        $outsetaToken = $data->outsetaToken;
-        $file = $data->file;
+        $outsetaToken = $_COOKIE['Outseta_nocode_accessToken'];
+        $file = $params['file'];
         
         $phDownload = new AlfrescoPHDownload();
 
         try {
-            $phDownload->sendFile($outsetaToken, $file);
-        } catch (Exception $e) {
-            echo 'Error downloading file';
-			http_response_code(400);
-			exit();
+            $fileUrl = $phDownload->getFileUrl($outsetaToken, $file);
+        } catch (\Exception $e) {
+            throw new Exception('Error retrieving file:' . $e->getMessage());
+            return;
         }
-        
+
+        return $fileUrl;
     }
 
     /*

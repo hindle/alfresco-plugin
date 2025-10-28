@@ -3,17 +3,17 @@
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
+use Aws\S3\S3Client;
 
 class AlfrescoPHDownload {
 
     /*
      * Check the user has a valid subscription before sending the file
      */
-    public function sendFile($outsetaToken, $file) {
+    public function getFileUrl($outsetaToken, $file) {
         $userDetails = $this->getUserDetailsFromToken($outsetaToken);
         if ($userDetails === false) {
-            throw new Exception('Failed to get user details');
+            throw new Exception('Failed to get user details.');
             return;
         }
 
@@ -23,31 +23,69 @@ class AlfrescoPHDownload {
             return;
         }
 
-        $filePath = ABSPATH . '/wp-content/uploads/private/' . basename($file);
-
-        if (!file_exists($filePath)) {
-            $to = ["ah.hindle@gmail.com", "hollie@alfrescolearning.co.uk", "jenny@alfrescolearning.co.uk"];
-            $subject = "[IMPORTANT] Planning Hub file download failed";
-            $content = "File: " . $file . "\n\nUser ID: " . $userDetails['userId'];
-
-            wp_mail($to, $subject, $content);
-            
-            throw new Exception('File not found');
+        try {
+            $fileUrl = $this->getSignedAwsUrl($file, $userDetails['userId']);
+        } catch (\Exception $e) {
+            throw $e;
             return;
         }
 
-        error_log('attempting to set content header');
-
-        add_filter('wp_headers', function($headers) {
-            error_log(print_r($headers, true));
-            $headers['Content-Type'] = 'application/pdf';
-            $headers['Content-Disposition'] = 'attachment';
-            $headers['Foo'] = 'Bar';
-            return $headers;
-        });
-
         $this->logOutsetaEvent($userDetails['userId'], basename($file));
-        readfile($filePath);
+
+        return $fileUrl;
+    }
+
+    /**
+     * Get the signed URL from AWS for the given file
+     */
+    private function getSignedAwsUrl($file, $userId) {
+        putenv("AWS_SHARED_CREDENTIALS_FILE=/www/alfrescolearning_623/deployment/.aws/credentials");
+        putenv("AWS_CONFIG_FILE=/www/alfrescolearning_623/deployment/.aws/config");
+
+        try {
+            $s3Client = new S3Client([
+                'region' => 'eu-west-1',
+            ]);
+
+            $bucket = 'alfresco-downloads';
+
+            $fileExists = $s3Client->doesObjectExistV2($bucket, $file);
+        } catch (\Exception $e) {
+            error_log('Error checking file exists in S3:' . $e->getMessage());
+            return;
+        }
+
+        if (!$fileExists) {
+            $to = ["ah.hindle@gmail.com", "info@alfrescolearning.co.uk"];
+            $subject = "[IMPORTANT] Planning Hub file download failed";
+            $content = "File: " . $file . "\n\nUser ID: " . $userId;
+
+            wp_mail($to, $subject, $content);
+
+            throw new Exception('File does not exist in S3.');
+            return;
+        }
+
+        try {
+            $request = $s3Client->createPresignedRequest(
+                $s3Client->getCommand('GetObject', [
+                    'Bucket' => 'alfresco-downloads',
+                    'Key' => $file,
+                    'ResponseContentDisposition' => 'attachment; "' . $file . '"',
+                    'ResponseContentType' => 'application/pdf',
+                ]),
+                '+10 minutes',
+            );
+
+            $signedUrl = (string) $request->getUri();
+        } catch (\Exception $e) {
+            error_log('Error getting file from S3:' . $e->getMessage());
+
+            throw new Exception('Error getting file from S3.');
+            return;
+        }
+        
+        return $signedUrl;
     }
 
     /*
@@ -155,4 +193,16 @@ END;
     private function recordFileDownload() {
 
     }
+
+    /**
+     * Command to create the downloads record db
+     * 
+     * CREATE TABLE al_downloads (
+     *   id INT,
+     *   user_id VARCHAR(32),
+     *   filename VARCHAR(255),
+     *   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+     * )
+     */
+
 }

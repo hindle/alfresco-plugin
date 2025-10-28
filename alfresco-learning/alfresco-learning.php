@@ -105,7 +105,8 @@ class Alfresco {
             <script>
                 var o_options = {
                     domain: 'alfresco-learning.outseta.com',
-                    load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
+                    load: 'auth,customForm,nocode,profile',
+                    tokenStorage: 'cookie'
                 };
             </script>
             <script src="https://cdn.outseta.com/outseta.min.js"

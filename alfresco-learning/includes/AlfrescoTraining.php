@@ -105,7 +105,7 @@ class AlfrescoTraining {
      * @TODO get the ID of the card from the create call and include a link to the card in the email
      */
     private function sendEmail($trainingSession) {
-        $to = ["hollie@alfrescolearning.co.uk", "jenny@alfrescolearning.co.uk"];
+        $to = ["info@alfrescolearning.co.uk"];
         $subject = "New training enquiry - " . $this->schoolName;
         $content = "New enquiry added to Trello.\n" .
             "Contact: " . $this->contactName . "\n" .

@@ -106,7 +106,7 @@ class AlfrescoInvoice {
      * @TODO add the correct email addresses in
      */
     private function sendEmail($plan) {
-        $to = ["hollie@alfrescolearning.co.uk", "jenny@alfrescolearning.co.uk"];
+        $to = ["info@alfrescolearning.co.uk"];
         $subject = "New Invoice enquiry - " . $this->schoolName . " - " . $plan;
         $content = "New enquiry added to Trello.\n" .
             "Plan: " . $plan . "\n\n" . 

@@ -9,7 +9,15 @@ function phUnitSetup() {
         const buttonTrigger = container.querySelector("a");
         buttonTrigger.addEventListener("click", (event) => {
             event.preventDefault();
+
             buttonTrigger.style.pointerEvents = "none";
+            // It's not pretty, but it works most of the time.
+            // Done this way because the error container has not had the id consistently applied
+            // for each of the pages and rows.
+            // Sometimes it pulls the document instead of the parent document.
+            const parentContainer = event.target.parentElement.parentElement.parentElement.parentElement.parentElement;
+			const errorContainer = parentContainer.children[2].children[0];
+			errorContainer.innerHTML = '';
 
             const loggedIn = outsetaIsLoggedIn();
             if (!loggedIn) {
@@ -18,40 +26,39 @@ function phUnitSetup() {
 				return;
             }
 
-            const outsetaToken = Outseta.getAccessToken();
             const file = container.getAttribute("data-al_file");
-            const data = {outsetaToken: outsetaToken, file: file};
+            const url = "/wp-json/alfresco/v1/download?file=" + file;
 
             const requestParams = {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(data)
             };
 
-            
-            const url = "/wp-admin/admin-ajax.php?action=ALFRESCO_PH_DOWNLOAD";
             fetch(url, requestParams)
                 .then((response) => {
                     if (!response.ok) {
                         throw new Error(`ajax call failed: ${response.status}`);
                     }
                     buttonTrigger.style.pointerEvents = "auto";
-                    return response.blob();
+                    return response.json();
                 })
-                .then((responseObject) => {
-                    const fileObject = new Blob([responseObject], { type: "application/pdf" });
-                    const fileUrl = URL.createObjectURL(fileObject);
+                .then((data) => {
+                    const fileUrl = atob(data.file);
                     let link = document.createElement('a');
                     link.href = fileUrl;
                     link.download = file;
                     link.click();
+
+                    gtag('event', 'file_download', {
+					file_name: file,
+				});
+
                 })
                 .catch((error) => {
                     console.error(error.message);
-                    // show an error message
-                    
+					errorContainer.innerHTML = '<p style="color: red; background: white; padding: 5px;">An error occurred, the Alfresco Hub team have been notified and will look into this.</p>';
                     buttonTrigger.style.pointerEvents = "auto";
                 });
         });
@@ -60,7 +67,7 @@ function phUnitSetup() {
 
 function outsetaIsLoggedIn() {
     let outsetaToken = Outseta.getAccessToken();
-    if (outsetaToken === null) {
+    if (!outsetaToken || outsetaToken === null) {
         return false;
     }
 
