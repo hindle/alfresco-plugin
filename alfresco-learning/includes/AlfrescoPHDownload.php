@@ -31,6 +31,7 @@ class AlfrescoPHDownload {
         }
 
         $this->logOutsetaEvent($userDetails['userId'], basename($file));
+        $this->recordFileDownload($userDetails['userId'], basename($file));
 
         return $fileUrl;
     }
@@ -84,7 +85,7 @@ class AlfrescoPHDownload {
             throw new Exception('Error getting file from S3.');
             return;
         }
-        
+
         return $signedUrl;
     }
 
@@ -93,7 +94,7 @@ class AlfrescoPHDownload {
      */
     private function getUserDetailsFromToken($token) {
         $key = <<<END
------BEGIN CERTIFICATE----- 
+-----BEGIN CERTIFICATE-----
 MIIC1jCCAb6gAwIBAgIQAJ9poI8F+R6Mfd7TPn+PZTANBgkqhkiG9w0BAQ0FADAmMSQwIgYDVQQD
 DBtkaWdpdGFsLWR1YWxpdHkub3V0c2V0YS5jb20wIBcNMjExMjEzMTMyMTAyWhgPMjEyMTEyMTMx
 MzIxMDJaMCYxJDAiBgNVBAMMG2RpZ2l0YWwtZHVhbGl0eS5vdXRzZXRhLmNvbTCCASIwDQYJKoZI
@@ -107,7 +108,7 @@ j4iuR6vBdfPjzWL17ocuGp8LSRh5pM5K2H87MKzS6CnMrjL0GmHn8Lv+sYttNttRfkPK1osOhjTo
 4S9v7+/CablcR77gsfee3nTomxK7y2UaenXnfJuoe9Ed2yr/etlKyUWUMQ4BpJBHqxIbVcxMn5tT
 e6aoNfGUgykZLCkO4LGCSMnthKLxUOs3Ya2u4hSh9iegRODa8BBrojRb4Ftb6cgTC1K0Z7ZvTe+w
 i5o7fH6bo4im78hyoDKPROYIRX29qEJlXkdyW5RiI94j0HBZE5h+5BOSx3wIWw==
------END CERTIFICATE----- 
+-----END CERTIFICATE-----
 END;
 
         try {
@@ -140,7 +141,7 @@ END;
         ]];
 
         $client = new Client($headers);
-        
+
         try {
             $response = $client->request('GET', $url);
         } catch (Exception $e) {
@@ -151,7 +152,7 @@ END;
         $body = (string) $response->getBody();
         $data = json_decode($body);
         $stage = $data->AccountStage;
-        
+
         if ($stage === 2 || $stage === 3 || $stage === 4 || $stage === 8) {
             return true;
         }
@@ -187,18 +188,59 @@ END;
     }
 
     /*
-     * @TODO setup a function to record the download against the user in the database
-     * TO be used as a part of the future file locking mechanism
+     * Record the file download in the database
      */
-    private function recordFileDownload() {
+    private function recordFileDownload($user, $file) {
+        global $wpdb;
 
+        $table_name = $wpdb->prefix . 'al_downloads';
+
+        $result = $wpdb->insert(
+            $table_name,
+            [
+                'user_id' => $user,
+                'filename' => $file,
+                'created' => current_time('mysql', 1)
+            ]
+        );
+
+        if ($result === false) {
+            error_log('Error recording file download in database: ' . $wpdb->last_error);
+        }
+    }
+
+    /**
+     * Check if the user has reached their download limit.
+     * This is skipped for school plans and always returns false.
+     */
+    private function checkDownloadLimitReached($user, $planId, $file) {
+
+        $schoolPlans = ['plan_ABC123', 'plan_DEF456'];
+        if (in_array($planId, $schoolPlans)) {
+            return false;
+        }
+
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'al_downloads';
+
+        $query = $wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE user_id = %s",
+            $user
+        );
+
+        $count = $wpdb->get_var($query);
+
+        $limit = 20;
+
+        return $count > $limit;
     }
 
     /**
      * Command to create the downloads record db
-     * 
+     *
      * CREATE TABLE al_downloads (
-     *   id INT,
+     *   id INT AUTO_INCREMENT PRIMARY KEY,
      *   user_id VARCHAR(32),
      *   filename VARCHAR(255),
      *   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
