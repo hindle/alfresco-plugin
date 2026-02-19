@@ -35,29 +35,40 @@ class AlfrescoWorkshopSpace {
         $this->referrerOther = $data->referrerOther;
         $this->referrerFriend = $data->referrerFriend;
     }
- 
+
     /*
      * @TODO check all required data is provided or set to safe value
      */
     public function validateData() {
         return true;
-    }  
+    }
 
     /*
      * Create a Trello card and send the email
      */
     public function saveData() {
 
-        $trelloContent = $this->getTrelloContent();
+				// Prepate content for the trello card
+				$cardName = $this->schoolName . ' - Space';
+        $cardContent = $this->getTrelloContent();
         $trello = new AlfrescoTrello();
 
+				// Create the Trello card
         try {
-            $trello->createWorkshopCard($this->schoolName, 'Space', $trelloContent);
+            $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_LIST_ID, $cardName, $cardContent);
         } catch (Exception $e) {
             throw $e;
         }
 
-        $this->sendEmail();
+				// Update custom field values on the card
+				try {
+					$trello->updateWorkshopCustomFields($cardId, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
+				} catch (Exception $e) {
+					throw $e;
+				}
+
+				// Send the email notification
+        $this->sendEmail($cardId);
     }
 
     /*
@@ -108,12 +119,8 @@ class AlfrescoWorkshopSpace {
 
     /*
      * Send the email notification
-     * 
-     * @TODO get the ID of the card from the create call and include a link to the card in the email
-     * 
-     * @TODO add the correct email addresses in
      */
-    private function sendEmail() {
+    private function sendEmail($cardId) {
         $to = ["bookings@alfrescolearning.co.uk"];
         $subject = "New Space workshop enquiry - " . $this->schoolName;
         $content = "New enquiry added to Trello.\n" .
@@ -123,7 +130,8 @@ class AlfrescoWorkshopSpace {
             "Address: " . $this->schoolAddress . "\n" .
             "Postcode: " . $this->schoolPostcode . "\n\n" .
             "Date: " . $this->bookingDate . "\n\n" .
-            "Details: " . $this->bookingDetails . "\n";
+            "Details: " . $this->bookingDetails . "\n\n\n" .
+						"https://trello.com/c/" . $cardId;
 
         wp_mail($to, $subject, $content);
     }

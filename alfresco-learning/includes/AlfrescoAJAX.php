@@ -1,7 +1,7 @@
-<?php 
+<?php
 
 class AlfrescoAJAX {
-    
+
     /*
      * Register functions with hooks
      */
@@ -66,11 +66,11 @@ class AlfrescoAJAX {
 
     /*
      * Handle file download request
-     * 
+     *
      * Validate Outseta token and then retrieve the file
      */
     private function handleDownload($request) {
-        // retrieve request params and validate correct data has been sent        
+        // retrieve request params and validate correct data has been sent
         $params = $request->get_query_params();
 
         if(!$_COOKIE['Outseta_nocode_accessToken'] || $_COOKIE['Outseta_nocode_accessToken']  == null) {
@@ -85,7 +85,7 @@ class AlfrescoAJAX {
 
         $outsetaToken = $_COOKIE['Outseta_nocode_accessToken'];
         $file = $params['file'];
-        
+
         $phDownload = new AlfrescoPHDownload();
 
         try {
@@ -158,7 +158,7 @@ class AlfrescoAJAX {
         if (!$dataValid) {
             echo 'Invalid data';
             http_response_code(400);
-			exit();
+						exit();
         }
 
         try {
@@ -166,8 +166,8 @@ class AlfrescoAJAX {
         } catch (Exception $e) {
             error_log($e->getMessage());
             echo 'Error saving data';
-			http_response_code(400);
-			exit();
+						http_response_code(400);
+						exit();
         }
 
         echo 'Data saved';
@@ -186,7 +186,7 @@ class AlfrescoAJAX {
         if (!$dataValid) {
             echo 'Invalid data';
             http_response_code(400);
-			exit();
+						exit();
         }
 
         try {
