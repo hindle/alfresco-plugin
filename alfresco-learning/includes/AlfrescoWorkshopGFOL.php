@@ -61,7 +61,7 @@ class AlfrescoWorkshopGFOL {
 
 				// Update custom field values on the card
 				try {
-					$trello->updateCustomFields($cardId, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
+					$trello->updateWorkshopCustomFields($cardId, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
 				} catch (Exception $e) {
 					throw $e;
 				}
