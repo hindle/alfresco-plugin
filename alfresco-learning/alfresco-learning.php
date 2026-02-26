@@ -1,100 +1,99 @@
 <?php
 /*
  * Plugin Name: Alfresco Learning
- * Description: Custom functionality for Alfresco Learning. 
+ * Description: Custom functionality for Alfresco Learning.
  */
 
 defined('ABSPATH') or die('Nobody screws with Boris Grishenko!');
 
 class Alfresco {
-    /*
-     * Setup core functionality
-     */
-    function __construct() {        
-        require_once(plugin_dir_path(__FILE__) . '/vendor/autoload.php');
+	/*
+   * Setup core functionality
+   */
+  function __construct() {
+    require_once(plugin_dir_path(__FILE__) . '/vendor/autoload.php');
+		$this->configureWordpress();
+		$this->registerCustomPostTypes();
+		$this->registerAJAXFunctions();
+		$this->setupOutseta();
+		$this->setupMailerlite();
+		$this->setupGoogleAnalytics();
+		$this->registerScripts();
+		$this->onboardingLoginCheck();
+  }
 
-        $this->configureWordpress();
-        $this->registerCustomPostTypes();
-        $this->registerAJAXFunctions();
-        $this->setupOutseta();
-        $this->setupMailerlite();
-        $this->setupGoogleAnalytics();
-        $this->registerScripts();
-        $this->onboardingLoginCheck();
-    }
-
-    /*
-     * Setup Wordpress config
-     */
-    private function configureWordpress() {
-        // remove noise from the header
-        remove_action('wp_head', 'wp_generator');
+	/*
+	 * Setup Wordpress config
+	 */
+	private function configureWordpress() {
+		// remove noise from the header
+		remove_action('wp_head', 'wp_generator');
 		remove_action('wp_head', 'rsd_link');
 		remove_action('wp_head', 'wlwmanifest_link');
 		remove_action('wp_head', 'wp_shortlink_wp_head');
 		remove_action('wp_head', 'rest_output_link_wp_head');
-    }
+	}
 
-    /*
-     * Register any required custom post types
-     */
-    private function registerCustomPostTypes() {
-        add_action('init', function() {
-            register_taxonomy('year-group', [], [
-                'label' => 'Year Group',
-                'public' => true,
-                'hierarchical' => false,
-                'show_in_rest' => true
-            ]);
-        });
+	/*
+	 * Register any required custom post types
+	 */
+  private function registerCustomPostTypes() {
+    add_action('init', function() {
+      register_taxonomy('year-group', [], [
+				'label' => 'Year Group',
+				'public' => true,
+				'hierarchical' => false,
+				'show_in_rest' => true
+    	]);
+    });
 
-        add_action('init', function() {
-            register_taxonomy('subject', [], [
-                'label' => 'Subject',
-                'public' => true,
-                'hierarchical' => false,
-                'show_in_rest' => true
-            ]);
-        });
+    add_action('init', function() {
+    	register_taxonomy('subject', [], [
+				'label' => 'Subject',
+				'public' => true,
+				'hierarchical' => false,
+				'show_in_rest' => true
+      ]);
+    });
 
-        add_action('init', function() {
-            register_taxonomy('planning-category', [], [
-                'label' => 'Planning Category',
-                'public' => true,
-                'hierarchical' => false,
-                'show_in_rest' => true
-            ]);
-        });
+    add_action('init', function() {
+      register_taxonomy('planning-category', [], [
+				'label' => 'Planning Category',
+				'public' => true,
+				'hierarchical' => false,
+				'show_in_rest' => true
+      ]);
+  	});
 
-        add_action('init', function() {
-            register_post_type('al_planning_unit',[
-                'labels' => [
-                    'name' => 'Planning Units',
-                    'singular_name' => 'Planning Unit'
-                ],
-                'public' => true,
-                'has_archive' => false,
-                'rewrite' => ['slug' => 'hub-unit'],
-                'menu_icon' => 'dashicons-welcome-learn-more',
-                'show_in_rest' => true,
-                'supports' => ['editor', 'title', 'revisions', 'thumbnail']
-            ]);
-        });
+		add_action('init', function() {
+			register_post_type('al_planning_unit',[
+				'labels' => [
+					'name' => 'Planning Units',
+					'singular_name' => 'Planning Unit'
+				],
+				'public' => true,
+				'has_archive' => false,
+				'rewrite' => ['slug' => 'hub-unit'],
+				'menu_icon' => 'dashicons-welcome-learn-more',
+				'show_in_rest' => true,
+				'supports' => ['editor', 'title', 'revisions', 'thumbnail']
+			]);
+		});
 
-        add_action('init', function() {
-            register_taxonomy_for_object_type('year-group', 'al_planning_unit');
-            register_taxonomy_for_object_type('subject', 'al_planning_unit');
-            register_taxonomy_for_object_type('planning-category', 'al_planning_unit');
-        });
-    }
+		add_action('init', function() {
+			register_taxonomy_for_object_type('year-group', 'al_planning_unit');
+			register_taxonomy_for_object_type('subject', 'al_planning_unit');
+			register_taxonomy_for_object_type('planning-category', 'al_planning_unit');
+		});
+  }
 
-    /*
-     * Register any required ajax endpoints
-     */
-    private function registerAJAXFunctions() {
-        $alfrescoAJAX = new AlfrescoAJAX();
-        $alfrescoAJAX->register();
-    }
+	/*
+	 * Register any required ajax endpoints
+	 */
+	private function registerAJAXFunctions() {
+		$alfrescoAJAX = new AlfrescoAJAX();
+		$alfrescoAJAX->register();
+	}
 
     /*
      * Add the Outseta scripts to site head
@@ -185,7 +184,7 @@ class Alfresco {
         add_action('template_redirect', function() {
             if (!is_user_logged_in() && (is_page('workshop-onboarding') || is_page(9302) || is_page(9304) || is_page(9306))) {
                 auth_redirect();
-            } 
+            }
         });
     }
 }
