@@ -55,7 +55,7 @@ class AlfrescoWorkshopCastles {
 
 				// Create the Trello card
         try {
-            $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_LIST_ID, $cardName, $cardContent);
+            $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_BOARD_ID, $cardName, $cardContent);
         } catch (Exception $e) {
             throw $e;
         }

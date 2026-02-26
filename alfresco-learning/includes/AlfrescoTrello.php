@@ -8,7 +8,7 @@ class AlfrescoTrello {
     private $apiToken = 'ATTA036aa994961fef6dbd7b5b8cb505f12226ae8830bab1710c4b7f22de9af1a53eF8F4245B';
     private $url = 'https://api.trello.com/1/cards';
 
-		const WORKSHOP_LIST_ID = '5d0e415968525e47da7ae15e';
+		const WORKSHOP_BOARD_ID = '5d0e415968525e47da7ae15e';
 
     /*
      * Add a trello card for a school subscription invoice request
