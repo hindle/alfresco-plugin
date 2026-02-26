@@ -64,6 +64,29 @@ class AlfrescoAJAX {
         });
     }
 
+	/*
+	 * Handle Trello webhooks for workshop board
+	 */
+	private function trelloWorkshopBoardWebhook() {
+		add_action( 'rest_api_init', function () {
+			$handler = function (\WP_REST_Request $request) {
+				$requestBody = $request->get_body();
+				error_log('Received Trello webhook: ' . $requestBody);
+				return 'Webhook received';
+			};
+
+			register_rest_route(
+				"alfresco/v1",
+				"/trello-workshop-webhook",
+				[
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => '__return_true',
+					'callback'            => $handler,
+				]
+			);
+		});
+	}
+
     /*
      * Handle file download request
      *
