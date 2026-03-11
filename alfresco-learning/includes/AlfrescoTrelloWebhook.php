@@ -91,14 +91,15 @@ class AlfrescoTrelloWebhook {
 			. "<p>$teacherName has expressed their preferential date for the workshop to happen. The dates for the workshops are booked on a first come, first served basis. To avoid disappointment and secure the booking, please respond to this email as soon as possible.</p>"
 			. "<p>Please be aware that the booking is not secured until we receive the above information.</p>"
 			. "<p>If your school requires a Purchase Order (PO) number on your invoice for this workshop, please send us the PO number as soon as you have one, so we can include it.</p>"
+			. "<p>Please note that you will not have received the invoice yet as invoices are issued around two months before the workshop delivery date, after your booking is confirmed.</p>"
 			. "<p>Many thanks,</p>"
 			. "<p>Alfresco Learning</p>";
 
 		// Send the email
 		$to = $adminEmail;
-		$headers[] = "Cc: $teacherEmail";
-		$headers[] = "Reply-To: bookings@alfrescolearning.com";
-		$headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.com>";
+		$headers[] = "Cc: $teacherEmail, bookings@alfrescolearning.co.uk";
+		$headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+		$headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
 		$headers[] = "Content-Type: text/html; charset=UTF-8";
 		$subject = "[Action Required] $schoolName - workshop booking";
 		wp_mail($to, $subject, $content, $headers);
@@ -132,7 +133,7 @@ class AlfrescoTrelloWebhook {
 	 * Send email in the event of an error
 	 */
 	private function sendErrorEmail($errorMessage, $cardId) {
-		$to = ["ah.hindle@gmail.com", "bookings@alfrescolearning.com"];
+		$to = ["ah.hindle@gmail.com", "bookings@alfrescolearning.co.uk"];
 		$subject = "[ERROR] Failed to send cancellation policy email";
 		$content = "An error occurred while trying to send the cancellation policy email:\n\n$errorMessage\n\nhttps://trello.com/c/$cardId";
 
