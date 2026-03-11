@@ -16,70 +16,70 @@ class ComposerStaticInit20fad51902f91e7fd3039e016a6556b5
     );
 
     public static $prefixLengthsPsr4 = array (
-        'S' => 
+        'S' =>
         array (
             'Symfony\\Polyfill\\Mbstring\\' => 26,
         ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
         ),
-        'J' => 
+        'J' =>
         array (
             'JmesPath\\' => 9,
         ),
-        'G' => 
+        'G' =>
         array (
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
         ),
-        'F' => 
+        'F' =>
         array (
             'Firebase\\JWT\\' => 13,
         ),
-        'A' => 
+        'A' =>
         array (
             'Aws\\' => 4,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Symfony\\Polyfill\\Mbstring\\' => 
+        'Symfony\\Polyfill\\Mbstring\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Psr\\Http\\Message\\' => 
+        'Psr\\Http\\Message\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-factory/src',
             1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
-        'Psr\\Http\\Client\\' => 
+        'Psr\\Http\\Client\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
-        'JmesPath\\' => 
+        'JmesPath\\' =>
         array (
             0 => __DIR__ . '/..' . '/mtdowling/jmespath.php/src',
         ),
-        'GuzzleHttp\\Psr7\\' => 
+        'GuzzleHttp\\Psr7\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
         ),
-        'GuzzleHttp\\Promise\\' => 
+        'GuzzleHttp\\Promise\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/promises/src',
         ),
-        'GuzzleHttp\\' => 
+        'GuzzleHttp\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
         ),
-        'Firebase\\JWT\\' => 
+        'Firebase\\JWT\\' =>
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
-        'Aws\\' => 
+        'Aws\\' =>
         array (
             0 => __DIR__ . '/..' . '/aws/aws-sdk-php/src',
         ),
@@ -115,6 +115,7 @@ class ComposerStaticInit20fad51902f91e7fd3039e016a6556b5
         'AlfrescoPHDownload' => __DIR__ . '/../..' . '/includes/AlfrescoPHDownload.php',
         'AlfrescoTraining' => __DIR__ . '/../..' . '/includes/AlfrescoTraining.php',
         'AlfrescoTrello' => __DIR__ . '/../..' . '/includes/AlfrescoTrello.php',
+        'AlfrescoTrelloWebhook' => __DIR__ . '/../..' . '/includes/AlfrescoTrelloWebhook.php',
         'AlfrescoWorkshopCastles' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopCastles.php',
         'AlfrescoWorkshopGFOL' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopGFOL.php',
         'AlfrescoWorkshopSeaside' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopSeaside.php',

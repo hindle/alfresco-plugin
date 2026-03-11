@@ -35,6 +35,7 @@ return array(
     'AlfrescoPHDownload' => $baseDir . '/includes/AlfrescoPHDownload.php',
     'AlfrescoTraining' => $baseDir . '/includes/AlfrescoTraining.php',
     'AlfrescoTrello' => $baseDir . '/includes/AlfrescoTrello.php',
+    'AlfrescoTrelloWebhook' => $baseDir . '/includes/AlfrescoTrelloWebhook.php',
     'AlfrescoWorkshopCastles' => $baseDir . '/includes/AlfrescoWorkshopCastles.php',
     'AlfrescoWorkshopGFOL' => $baseDir . '/includes/AlfrescoWorkshopGFOL.php',
     'AlfrescoWorkshopSeaside' => $baseDir . '/includes/AlfrescoWorkshopSeaside.php',

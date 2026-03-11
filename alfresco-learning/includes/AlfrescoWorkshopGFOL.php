@@ -54,14 +54,14 @@ class AlfrescoWorkshopGFOL {
 
         // Create the Trello card
         try {
-            $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_BOARD_ID, $cardName, $cardContent);
+            $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_NEW_LIST_ID, $cardName, $cardContent);
         } catch (Exception $e) {
             throw $e;
         }
 
 				// Update custom field values on the card
 				try {
-					$trello->updateWorkshopCustomFields($cardId, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
+					$trello->updateWorkshopCustomFields($cardId, AlfrescoTrello::WORKSHOP_TYPE_GFOL, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
 				} catch (Exception $e) {
 					throw $e;
 				}

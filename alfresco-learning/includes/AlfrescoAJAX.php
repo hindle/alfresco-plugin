@@ -31,6 +31,7 @@ class AlfrescoAJAX {
         add_action('wp_ajax_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
 
         $this->downloadEndpoint();
+				$this->trelloWorkshopBoardWebhook();
     }
 
     /*
@@ -42,7 +43,7 @@ class AlfrescoAJAX {
 		        "alfresco/v1",
 		        "/download",
 		        [
-			        'methods'             => \WP_REST_Server::READABLE,
+			        'methods'             => 'GET',
 			        'permission_callback' => '__return_true',
 			        'callback'            => function (\WP_REST_Request $request) {
 
@@ -71,7 +72,11 @@ class AlfrescoAJAX {
 		add_action( 'rest_api_init', function () {
 			$handler = function (\WP_REST_Request $request) {
 				$requestBody = $request->get_body();
-				error_log('Received Trello webhook: ' . $requestBody);
+				//file_put_contents('/tmp/trello-webhook.log', $requestBody . "\n", FILE_APPEND);
+
+				$trelloWebhook = new AlfrescoTrelloWebhook();
+				$trelloWebhook->workshopBoardHandler($request);
+
 				return 'Webhook received';
 			};
 
@@ -79,7 +84,7 @@ class AlfrescoAJAX {
 				"alfresco/v1",
 				"/trello-workshop-webhook",
 				[
-					'methods'             => \WP_REST_Server::CREATABLE,
+					'methods'             => ['POST', 'GET'],
 					'permission_callback' => '__return_true',
 					'callback'            => $handler,
 				]
@@ -149,52 +154,52 @@ class AlfrescoAJAX {
         $this->handleWorkshopForm('SEASIDE');
     }
 
-    /**
-     * Handle workshop enquiry form submissions
-     */
-    public function handleWorkshopForm($workshop) {
-        $requestBody = file_get_contents('php://input');
-        $data = json_decode($requestBody);
+	/**
+	 * Handle workshop enquiry form submissions
+	 */
+	public function handleWorkshopForm($workshop) {
+    $requestBody = file_get_contents('php://input');
+    $data = json_decode($requestBody);
 
-        $workshopHandler = false;
+    $workshopHandler = false;
 
-        switch ($workshop) {
-            case 'GFOL':
-                $workshopHandler = new AlfrescoWorkshopGFOL($data);
-                break;
-            case 'SPACE':
-                $workshopHandler = new AlfrescoWorkshopSpace($data);
-                break;
-            case 'CASTLES':
-                $workshopHandler = new AlfrescoWorkshopCastles($data);
-                break;
-            case 'SEASIDE':
-                $workshopHandler = new AlfrescoWorkshopSeaside($data);
-                break;
-            default:
-                echo 'Invalid workshop handler';
-                http_response_code(500);
-		    	exit();
-        }
-
-        $dataValid = $workshopHandler->validateData();
-        if (!$dataValid) {
-            echo 'Invalid data';
-            http_response_code(400);
-						exit();
-        }
-
-        try {
-            $workshopHandler->saveData();
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            echo 'Error saving data';
-						http_response_code(400);
-						exit();
-        }
-
-        echo 'Data saved';
+    switch ($workshop) {
+			case 'GFOL':
+				$workshopHandler = new AlfrescoWorkshopGFOL($data);
+				break;
+			case 'SPACE':
+				$workshopHandler = new AlfrescoWorkshopSpace($data);
+				break;
+			case 'CASTLES':
+				$workshopHandler = new AlfrescoWorkshopCastles($data);
+				break;
+			case 'SEASIDE':
+				$workshopHandler = new AlfrescoWorkshopSeaside($data);
+				break;
+			default:
+				echo 'Invalid workshop handler';
+				http_response_code(500);
+		    exit();
     }
+
+		$dataValid = $workshopHandler->validateData();
+		if (!$dataValid) {
+			echo 'Invalid data';
+			http_response_code(400);
+			exit();
+		}
+
+		try {
+			$workshopHandler->saveData();
+		} catch (Exception $e) {
+			error_log($e->getMessage());
+			echo 'Error saving data';
+			http_response_code(400);
+			exit();
+		}
+
+    echo 'Data saved';
+  }
 
     /*
      * Handle Invoice enqiry submission
