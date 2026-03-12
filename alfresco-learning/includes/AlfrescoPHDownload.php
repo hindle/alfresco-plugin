@@ -5,12 +5,13 @@ use Firebase\JWT\Key;
 use GuzzleHttp\Client;
 use Aws\S3\S3Client;
 
-class AlfrescoPHDownload {
-
+class AlfrescoPHDownload
+{
     /*
      * Check the user has a valid subscription before sending the file
      */
-    public function getFileUrl($outsetaToken, $file) {
+    public function getFileUrl($outsetaToken, $file)
+    {
         $userDetails = $this->getUserDetailsFromToken($outsetaToken);
         if ($userDetails === false) {
             throw new Exception('Failed to get user details.');
@@ -38,7 +39,8 @@ class AlfrescoPHDownload {
     /**
      * Get the signed URL from AWS for the given file
      */
-    private function getSignedAwsUrl($file, $userId) {
+    private function getSignedAwsUrl($file, $userId)
+    {
         putenv("AWS_SHARED_CREDENTIALS_FILE=/www/alfrescolearning_623/deployment/.aws/credentials");
         putenv("AWS_CONFIG_FILE=/www/alfrescolearning_623/deployment/.aws/config");
 
@@ -84,14 +86,15 @@ class AlfrescoPHDownload {
             throw new Exception('Error getting file from S3.');
             return;
         }
-        
+
         return $signedUrl;
     }
 
     /*
      * Get the users details from the token
      */
-    private function getUserDetailsFromToken($token) {
+    private function getUserDetailsFromToken($token)
+    {
         $key = <<<END
 -----BEGIN CERTIFICATE----- 
 MIIC1jCCAb6gAwIBAgIQAJ9poI8F+R6Mfd7TPn+PZTANBgkqhkiG9w0BAQ0FADAmMSQwIgYDVQQD
@@ -112,7 +115,7 @@ END;
 
         try {
             $decodedToken = JWT::decode($token, new Key($key, 'RS256'));
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             error_log('JWT decode failed: ' . $e->getMessage());
             return false;
         }
@@ -130,7 +133,8 @@ END;
     /*
      * Check user has valid subscription in Outseta
      */
-    private function userHasValidSubscription($userDetails) {
+    private function userHasValidSubscription($userDetails)
+    {
         $apiKey = 'Outseta 594812bb-d3fb-4f55-b560-94ff33591356:28a14318ff70b729549d5e6ec569b15b';
         $url = "https://alfresco-learning.outseta.com/api/v1/crm/accounts/" . $userDetails['accountId'];
 
@@ -140,7 +144,7 @@ END;
         ]];
 
         $client = new Client($headers);
-        
+
         try {
             $response = $client->request('GET', $url);
         } catch (Exception $e) {
@@ -151,7 +155,7 @@ END;
         $body = (string) $response->getBody();
         $data = json_decode($body);
         $stage = $data->AccountStage;
-        
+
         if ($stage === 2 || $stage === 3 || $stage === 4 || $stage === 8) {
             return true;
         }
@@ -162,7 +166,8 @@ END;
     /*
      * Log the download event in Outseta
      */
-    private function logOutsetaEvent($user, $file) {
+    private function logOutsetaEvent($user, $file)
+    {
         $apiKey = 'Outseta 594812bb-d3fb-4f55-b560-94ff33591356:28a14318ff70b729549d5e6ec569b15b';
         $url = "https://alfresco-learning.outseta.com/api/v1/activities/customactivity";
 
@@ -190,13 +195,13 @@ END;
      * @TODO setup a function to record the download against the user in the database
      * TO be used as a part of the future file locking mechanism
      */
-    private function recordFileDownload() {
-
+    private function recordFileDownload()
+    {
     }
 
     /**
      * Command to create the downloads record db
-     * 
+     *
      * CREATE TABLE al_downloads (
      *   id INT,
      *   user_id VARCHAR(32),
@@ -204,5 +209,4 @@ END;
      *   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
      * )
      */
-
 }

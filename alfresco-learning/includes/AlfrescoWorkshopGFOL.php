@@ -1,7 +1,7 @@
 <?php
 
-class AlfrescoWorkshopGFOL {
-
+class AlfrescoWorkshopGFOL
+{
     private $contactName;
     private $contactEmail;
     private $schoolName;
@@ -18,7 +18,8 @@ class AlfrescoWorkshopGFOL {
     private $referrerOther;
     private $referrerFriend;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->contactName = $data->contactName;
         $this->contactEmail = $data->contactEmail;
         $this->schoolName = $data->schoolName;
@@ -39,16 +40,18 @@ class AlfrescoWorkshopGFOL {
     /*
      * @TODO check all required data is provided or set to safe value
      */
-    public function validateData() {
+    public function validateData()
+    {
         return true;
     }
 
     /*
      * Create a Trello card and send the email
      */
-    public function saveData() {
+    public function saveData()
+    {
 
-				$cardName = $this->schoolName . ' - GFoL';
+                $cardName = $this->schoolName . ' - GFoL';
         $cardContent = $this->getTrelloContent();
         $trello = new AlfrescoTrello();
 
@@ -59,21 +62,22 @@ class AlfrescoWorkshopGFOL {
             throw $e;
         }
 
-				// Update custom field values on the card
-				try {
-					$trello->updateWorkshopCustomFields($cardId, AlfrescoTrello::WORKSHOP_TYPE_GFOL, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
-				} catch (Exception $e) {
-					throw $e;
-				}
+                // Update custom field values on the card
+        try {
+            $trello->updateWorkshopCustomFields($cardId, AlfrescoTrello::WORKSHOP_TYPE_GFOL, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
+        } catch (Exception $e) {
+            throw $e;
+        }
 
-				// Send the email notification
+                // Send the email notification
         $this->sendEmail($cardId);
     }
 
     /*
      * Get the content to be used in the trello card description
      */
-    private function getTrelloContent() {
+    private function getTrelloContent()
+    {
 
         $spaceOwnerDetails = '';
         if ($this->spaceOwner === 'other') {
@@ -83,7 +87,7 @@ class AlfrescoWorkshopGFOL {
         $referrerDetails = '';
         if ($this->referrer === 'other') {
             $referrerDetails = 'Details: ' . $this->referrerOther . "\n";
-        } else if ($this->referrer === 'friend') {
+        } elseif ($this->referrer === 'friend') {
             $referrerDetails = 'Details: ' . $this->referrerFriend . "\n";
         }
 
@@ -119,7 +123,8 @@ class AlfrescoWorkshopGFOL {
     /*
      * Send the email notification
      */
-    private function sendEmail($cardId) {
+    private function sendEmail($cardId)
+    {
         $to = ["bookings@alfrescolearning.co.uk"];
         $subject = "New GFoL workshop enquiry - " . $this->schoolName;
         $content = "New enquiry added to Trello.\n" .
@@ -130,7 +135,7 @@ class AlfrescoWorkshopGFOL {
             "Postcode: " . $this->schoolPostcode . "\n\n" .
             "Date: " . $this->bookingDate . "\n\n" .
             "Details: " . $this->bookingDetails . "\n\n\n" .
-						"https://trello.com/c/" . $cardId;
+                        "https://trello.com/c/" . $cardId;
 
         wp_mail($to, $subject, $content);
     }

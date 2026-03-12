@@ -1,6 +1,7 @@
 <?php
 
-class AlfrescoInvoice {
+class AlfrescoInvoice
+{
     private $plan;
     private $schoolName;
     private $schoolAddress;
@@ -13,7 +14,8 @@ class AlfrescoInvoice {
     private $referrerOther;
     private $referrerFriend;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->plan = $data->plan;
         $this->schoolName = $data->schoolName;
         $this->schoolAddress = $data->schoolAddress;
@@ -30,14 +32,16 @@ class AlfrescoInvoice {
     /*
      * @TODO check all required data is provided or set to safe value
      */
-    public function validateData() {
+    public function validateData()
+    {
         return true;
-    } 
+    }
 
     /*
      * Create a Trello card and send the email
      */
-    public function saveData() {
+    public function saveData()
+    {
 
         $plan = '';
         switch ($this->plan) {
@@ -67,11 +71,12 @@ class AlfrescoInvoice {
     /*
      * Get the content to be used in the trello card description
      */
-    private function getTrelloContent($plan) {
+    private function getTrelloContent($plan)
+    {
         $referrerDetails = '';
         if ($this->referrer === 'other') {
             $referrerDetails = 'Details: ' . $this->referrerOther . "\n";
-        } else if ($this->referrer === 'friend') {
+        } elseif ($this->referrer === 'friend') {
             $referrerDetails = 'Details: ' . $this->referrerFriend . "\n";
         }
 
@@ -100,16 +105,17 @@ class AlfrescoInvoice {
 
     /*
      * Send the email notification
-     * 
+     *
      * @TODO get the ID of the card from the create call and include a link to the card in the email
-     * 
+     *
      * @TODO add the correct email addresses in
      */
-    private function sendEmail($plan) {
+    private function sendEmail($plan)
+    {
         $to = ["info@alfrescolearning.co.uk"];
         $subject = "New Invoice enquiry - " . $this->schoolName . " - " . $plan;
         $content = "New enquiry added to Trello.\n" .
-            "Plan: " . $plan . "\n\n" . 
+            "Plan: " . $plan . "\n\n" .
             "Contact: " . $this->accountName . "\n" .
             "Contact email: " . $this->accountEmail . "\n\n" .
             "School: " . $this->schoolName . "\n" .

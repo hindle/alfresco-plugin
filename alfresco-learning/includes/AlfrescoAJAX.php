@@ -1,11 +1,12 @@
 <?php
 
-class AlfrescoAJAX {
-
+class AlfrescoAJAX
+{
     /*
      * Register functions with hooks
      */
-    public function register() {
+    public function register()
+    {
         add_action('wp_ajax_nopriv_ALFRESCO_WORKSHOP_GFOL', [$this, 'handleWorkshopFormGFoL']);
         add_action('wp_ajax_ALFRESCO_WORKSHOP_GFOL', [$this, 'handleWorkshopFormGFoL']);
 
@@ -31,21 +32,22 @@ class AlfrescoAJAX {
         add_action('wp_ajax_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
 
         $this->downloadEndpoint();
-				$this->trelloWorkshopBoardWebhook();
+                $this->trelloWorkshopBoardWebhook();
     }
 
     /*
      * Register download endpoint to handle PH file downloads
      */
-    private function downloadEndpoint() {
-        add_action( 'rest_api_init', function () {
-	        register_rest_route(
-		        "alfresco/v1",
-		        "/download",
-		        [
-			        'methods'             => 'GET',
-			        'permission_callback' => '__return_true',
-			        'callback'            => function (\WP_REST_Request $request) {
+    private function downloadEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/download",
+                [
+                    'methods'             => 'GET',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
 
                         try {
                             $fileUrl = $this->handleDownload($request);
@@ -59,54 +61,56 @@ class AlfrescoAJAX {
                         $encodedUrl = base64_encode($fileUrl);
                         $responseBody = ['file' => $encodedUrl];
                         return $responseBody;
-			        },
-		        ]
-	        );
+                    },
+                ]
+            );
         });
     }
 
-	/*
-	 * Handle Trello webhooks for workshop board
-	 */
-	private function trelloWorkshopBoardWebhook() {
-		add_action( 'rest_api_init', function () {
-			$handler = function (\WP_REST_Request $request) {
-				$requestBody = $request->get_body();
-				//file_put_contents('/tmp/trello-webhook.log', $requestBody . "\n", FILE_APPEND);
+    /*
+     * Handle Trello webhooks for workshop board
+     */
+    private function trelloWorkshopBoardWebhook()
+    {
+        add_action('rest_api_init', function () {
+            $handler = function (\WP_REST_Request $request) {
+                $requestBody = $request->get_body();
+                //file_put_contents('/tmp/trello-webhook.log', $requestBody . "\n", FILE_APPEND);
 
-				$trelloWebhook = new AlfrescoTrelloWebhook();
-				$trelloWebhook->workshopBoardHandler($request);
+                $trelloWebhook = new AlfrescoTrelloWebhook();
+                $trelloWebhook->workshopBoardHandler($request);
 
-				return 'Webhook received';
-			};
+                return 'Webhook received';
+            };
 
-			register_rest_route(
-				"alfresco/v1",
-				"/trello-workshop-webhook",
-				[
-					'methods'             => ['POST', 'GET'],
-					'permission_callback' => '__return_true',
-					'callback'            => $handler,
-				]
-			);
-		});
-	}
+            register_rest_route(
+                "alfresco/v1",
+                "/trello-workshop-webhook",
+                [
+                    'methods'             => ['POST', 'GET'],
+                    'permission_callback' => '__return_true',
+                    'callback'            => $handler,
+                ]
+            );
+        });
+    }
 
     /*
      * Handle file download request
      *
      * Validate Outseta token and then retrieve the file
      */
-    private function handleDownload($request) {
+    private function handleDownload($request)
+    {
         // retrieve request params and validate correct data has been sent
         $params = $request->get_query_params();
 
-        if(!$_COOKIE['Outseta_nocode_accessToken'] || $_COOKIE['Outseta_nocode_accessToken']  == null) {
+        if (!$_COOKIE['Outseta_nocode_accessToken'] || $_COOKIE['Outseta_nocode_accessToken']  == null) {
             throw new Exception('Missing Outseta token');
             return;
         }
 
-        if(!$params['file'] || $params['file'] === null) {
+        if (!$params['file'] || $params['file'] === null) {
             throw new Exception('Missing requested file name');
             return;
         }
@@ -129,82 +133,88 @@ class AlfrescoAJAX {
     /*
      * Handle GFoL workshop enquiry
      */
-    public function handleWorkshopFormGFoL() {
+    public function handleWorkshopFormGFoL()
+    {
         $this->handleWorkshopForm('GFOL');
     }
 
     /*
      * Handle Space workshop enquiry
      */
-    public function handleWorkshopFormSpace() {
+    public function handleWorkshopFormSpace()
+    {
         $this->handleWorkshopForm('SPACE');
     }
 
     /*
      * Handle Castles workshop enquiry
      */
-    public function handleWorkshopFormCastles() {
+    public function handleWorkshopFormCastles()
+    {
         $this->handleWorkshopForm('CASTLES');
     }
 
     /*
      * Handle Seaside workshop enquiry
      */
-    public function handleWorkshopFormSeaside() {
+    public function handleWorkshopFormSeaside()
+    {
         $this->handleWorkshopForm('SEASIDE');
     }
 
-	/**
-	 * Handle workshop enquiry form submissions
-	 */
-	public function handleWorkshopForm($workshop) {
-    $requestBody = file_get_contents('php://input');
-    $data = json_decode($requestBody);
+    /**
+     * Handle workshop enquiry form submissions
+     */
+    public function handleWorkshopForm($workshop)
+    {
+        $requestBody = file_get_contents('php://input');
+        $data = json_decode($requestBody);
 
-    $workshopHandler = false;
+        $workshopHandler = false;
 
-    switch ($workshop) {
-			case 'GFOL':
-				$workshopHandler = new AlfrescoWorkshopGFOL($data);
-				break;
-			case 'SPACE':
-				$workshopHandler = new AlfrescoWorkshopSpace($data);
-				break;
-			case 'CASTLES':
-				$workshopHandler = new AlfrescoWorkshopCastles($data);
-				break;
-			case 'SEASIDE':
-				$workshopHandler = new AlfrescoWorkshopSeaside($data);
-				break;
-			default:
-				echo 'Invalid workshop handler';
-				http_response_code(500);
-		    exit();
+        switch ($workshop) {
+            case 'GFOL':
+                $workshopHandler = new AlfrescoWorkshopGFOL($data);
+                break;
+            case 'SPACE':
+                $workshopHandler = new AlfrescoWorkshopSpace($data);
+                break;
+            case 'CASTLES':
+                $workshopHandler = new AlfrescoWorkshopCastles($data);
+                break;
+            case 'SEASIDE':
+                $workshopHandler = new AlfrescoWorkshopSeaside($data);
+                break;
+            default:
+                echo 'Invalid workshop handler';
+                http_response_code(500);
+                exit();
+        }
+
+        $dataValid = $workshopHandler->validateData();
+        if (!$dataValid) {
+            echo 'Invalid data';
+            http_response_code(400);
+            exit();
+        }
+
+        try {
+            $workshopHandler->saveData();
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            echo 'Error saving data';
+            http_response_code(400);
+            exit();
+        }
+
+        echo 'Data saved';
     }
-
-		$dataValid = $workshopHandler->validateData();
-		if (!$dataValid) {
-			echo 'Invalid data';
-			http_response_code(400);
-			exit();
-		}
-
-		try {
-			$workshopHandler->saveData();
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-			echo 'Error saving data';
-			http_response_code(400);
-			exit();
-		}
-
-    echo 'Data saved';
-  }
 
     /*
      * Handle Invoice enqiry submission
      */
-    public function handleInvoiceForm() {
+    public function handleInvoiceForm()
+    {
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody);
 
@@ -214,15 +224,15 @@ class AlfrescoAJAX {
         if (!$dataValid) {
             echo 'Invalid data';
             http_response_code(400);
-						exit();
+                        exit();
         }
 
         try {
             $invoiceHandler->saveData();
         } catch (Exception $e) {
             echo 'Error saving data';
-			http_response_code(400);
-			exit();
+            http_response_code(400);
+            exit();
         }
 
         echo 'Data saved';
@@ -231,7 +241,8 @@ class AlfrescoAJAX {
     /*
      * Handle Training enqiry submission
      */
-    public function handleTrainingForm() {
+    public function handleTrainingForm()
+    {
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody);
 
@@ -241,15 +252,15 @@ class AlfrescoAJAX {
         if (!$dataValid) {
             echo 'Invalid data';
             http_response_code(400);
-			exit();
+            exit();
         }
 
         try {
             $trainingHandler->saveData();
         } catch (Exception $e) {
             echo 'Error saving data';
-			http_response_code(400);
-			exit();
+            http_response_code(400);
+            exit();
         }
 
         echo 'Data saved';
@@ -258,21 +269,24 @@ class AlfrescoAJAX {
     /*
      * Handle neutral feedback submission
      */
-    public function handleFeedbackFormNeutral() {
+    public function handleFeedbackFormNeutral()
+    {
         $this->handleFeedbackForm('NEUTRAL');
     }
 
     /*
      * Handle negative feedback submission
      */
-    public function handleFeedbackFormNegative() {
+    public function handleFeedbackFormNegative()
+    {
         $this->handleFeedbackForm('NEGATIVE');
     }
 
     /*
      * Handle feedback submission
      */
-    public function handleFeedbackForm($type) {
+    public function handleFeedbackForm($type)
+    {
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody);
 
@@ -282,15 +296,15 @@ class AlfrescoAJAX {
         if (!$dataValid) {
             echo 'Invalid data';
             http_response_code(400);
-			exit();
+            exit();
         }
 
         try {
             $feedbackHandler->saveData();
         } catch (Exception $e) {
             echo 'Error saving data';
-			http_response_code(400);
-			exit();
+            http_response_code(400);
+            exit();
         }
 
         echo 'Data saved';

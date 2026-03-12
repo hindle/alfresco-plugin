@@ -1,7 +1,7 @@
 <?php
 
-class AlfrescoTraining {
-
+class AlfrescoTraining
+{
     private $contactName;
     private $contactEmail;
     private $schoolName;
@@ -14,7 +14,8 @@ class AlfrescoTraining {
     private $referrerOther;
     private $referrerFriend;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->contactName = $data->contactName;
         $this->contactEmail = $data->contactEmail;
         $this->schoolName = $data->schoolName;
@@ -27,18 +28,20 @@ class AlfrescoTraining {
         $this->referrerOther = $data->referrerOther;
         $this->referrerFriend = $data->referrerFriend;
     }
- 
+
     /*
      * @TODO check all required data is provided or set to safe value
      */
-    public function validateData() {
+    public function validateData()
+    {
         return true;
-    }  
+    }
 
     /*
      * Create a Trello card and send the email
      */
-    public function saveData() {
+    public function saveData()
+    {
 
         $trainingSession = 'Unsure';
         switch ($this->trainingSession) {
@@ -65,12 +68,13 @@ class AlfrescoTraining {
     /*
      * Get the content to be used in the trello card description
      */
-    private function getTrelloContent($trainingSession) {
+    private function getTrelloContent($trainingSession)
+    {
 
         $referrerDetails = '';
         if ($this->referrer === 'other') {
             $referrerDetails = 'Details: ' . $this->referrerOther . "\n";
-        } else if ($this->referrer === 'friend') {
+        } elseif ($this->referrer === 'friend') {
             $referrerDetails = 'Details: ' . $this->referrerFriend . "\n";
         }
 
@@ -85,7 +89,7 @@ class AlfrescoTraining {
             "\n" .
             "**Training session**" . "\n" .
             $trainingSession . "\n" .
-            "\n" . 
+            "\n" .
             "**Date** \n" .
             $this->bookingDate . "\n" .
             "\n" .
@@ -101,10 +105,11 @@ class AlfrescoTraining {
 
     /*
      * Send the email notification
-     * 
+     *
      * @TODO get the ID of the card from the create call and include a link to the card in the email
      */
-    private function sendEmail($trainingSession) {
+    private function sendEmail($trainingSession)
+    {
         $to = ["info@alfrescolearning.co.uk"];
         $subject = "New training enquiry - " . $this->schoolName;
         $content = "New enquiry added to Trello.\n" .

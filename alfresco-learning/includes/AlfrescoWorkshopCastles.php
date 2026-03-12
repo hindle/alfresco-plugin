@@ -1,7 +1,7 @@
 <?php
 
-class AlfrescoWorkshopCastles {
-
+class AlfrescoWorkshopCastles
+{
     private $contactName;
     private $contactEmail;
     private $schoolName;
@@ -18,7 +18,8 @@ class AlfrescoWorkshopCastles {
     private $referrerOther;
     private $referrerFriend;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->contactName = $data->contactName;
         $this->contactEmail = $data->contactEmail;
         $this->schoolName = $data->schoolName;
@@ -39,42 +40,45 @@ class AlfrescoWorkshopCastles {
     /*
      * @TODO check all required data is provided or set to safe value
      */
-    public function validateData() {
+    public function validateData()
+    {
         return true;
     }
 
     /*
      * Create a Trello card and send the email
      */
-    public function saveData() {
+    public function saveData()
+    {
 
-				// Prepate content for the trello card
-				$cardName = $this->schoolName . ' - Castles';
+                // Prepate content for the trello card
+                $cardName = $this->schoolName . ' - Castles';
         $cardContent = $this->getTrelloContent();
         $trello = new AlfrescoTrello();
 
-				// Create the Trello card
+                // Create the Trello card
         try {
             $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_NEW_LIST_ID, $cardName, $cardContent);
         } catch (Exception $e) {
             throw $e;
         }
 
-				// Update custom field values on the card
-				try {
-					$trello->updateWorkshopCustomFields($cardId, AlfrescoTrello::WORKSHOP_TYPE_CASTLES, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
-				} catch (Exception $e) {
-					throw $e;
-				}
+                // Update custom field values on the card
+        try {
+            $trello->updateWorkshopCustomFields($cardId, AlfrescoTrello::WORKSHOP_TYPE_CASTLES, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
+        } catch (Exception $e) {
+            throw $e;
+        }
 
-				// Send the email notification
+                // Send the email notification
         $this->sendEmail($cardId);
     }
 
     /*
      * Get the content to be used in the trello card description
      */
-    private function getTrelloContent() {
+    private function getTrelloContent()
+    {
 
         $spaceOwnerDetails = '';
         if ($this->spaceOwner === 'other') {
@@ -84,7 +88,7 @@ class AlfrescoWorkshopCastles {
         $referrerDetails = '';
         if ($this->referrer === 'other') {
             $referrerDetails = 'Details: ' . $this->referrerOther . "\n";
-        } else if ($this->referrer === 'friend') {
+        } elseif ($this->referrer === 'friend') {
             $referrerDetails = 'Details: ' . $this->referrerFriend . "\n";
         }
 
@@ -120,7 +124,8 @@ class AlfrescoWorkshopCastles {
     /*
      * Send the email notification
      */
-    private function sendEmail($cardId) {
+    private function sendEmail($cardId)
+    {
         $to = ["bookings@alfrescolearning.co.uk"];
         $subject = "New Castles workshop enquiry - " . $this->schoolName;
         $content = "New enquiry added to Trello.\n" .
@@ -131,7 +136,7 @@ class AlfrescoWorkshopCastles {
             "Postcode: " . $this->schoolPostcode . "\n\n" .
             "Date: " . $this->bookingDate . "\n\n" .
             "Details: " . $this->bookingDetails . "\n\n\n" .
-						"https://trello.com/c/" . $cardId;
+                        "https://trello.com/c/" . $cardId;
 
         wp_mail($to, $subject, $content);
     }
