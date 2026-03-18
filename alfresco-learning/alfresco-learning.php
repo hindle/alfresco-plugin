@@ -107,7 +107,7 @@ class Alfresco
     private function setupOutseta()
     {
         add_action('wp_head', function () {
-            ?>
+?>
             <script>
                 var o_options = {
                     domain: 'alfresco-learning.outseta.com',
@@ -119,7 +119,7 @@ class Alfresco
                 data-options="o_options">
             </script>
             <script>
-                Outseta.on('redirect',  (redirectUrl) => {
+                Outseta.on('redirect', (redirectUrl) => {
                     const redirectURL = new URL(redirectUrl);
                     const accessToken = redirectURL.searchParams.get('access_token');
 
@@ -131,7 +131,7 @@ class Alfresco
                     }
                 });
             </script>
-            <?php
+        <?php
         });
     }
 
@@ -141,17 +141,32 @@ class Alfresco
     private function setupMailerlite()
     {
         add_action('wp_head', function () {
-            ?>
+        ?>
             <script>
-                (function(m,a,i,l,e,r){ m['MailerLiteObject']=e;function f(){
-                var c={ a:arguments,q:[]};var r=this.push(c);return "number"!=typeof r?r:f.bind(c.q);}
-                f.q=f.q||[];m[e]=m[e]||f.bind(f.q);m[e].q=m[e].q||f.q;r=a.createElement(i);
-                var _=a.getElementsByTagName(i)[0];r.async=1;r.src=l+'?v'+(~~(new Date().getTime()/1000000));
-                _.parentNode.insertBefore(r,_);})(window, document, 'script', 'https://static.mailerlite.com/js/universal.js', 'ml');
+                (function(m, a, i, l, e, r) {
+                    m['MailerLiteObject'] = e;
+
+                    function f() {
+                        var c = {
+                            a: arguments,
+                            q: []
+                        };
+                        var r = this.push(c);
+                        return "number" != typeof r ? r : f.bind(c.q);
+                    }
+                    f.q = f.q || [];
+                    m[e] = m[e] || f.bind(f.q);
+                    m[e].q = m[e].q || f.q;
+                    r = a.createElement(i);
+                    var _ = a.getElementsByTagName(i)[0];
+                    r.async = 1;
+                    r.src = l + '?v' + (~~(new Date().getTime() / 1000000));
+                    _.parentNode.insertBefore(r, _);
+                })(window, document, 'script', 'https://static.mailerlite.com/js/universal.js', 'ml');
 
                 var ml_account = ml('accounts', '2344751', 'd5t1g6z7h7', 'load');
             </script>
-            <?php
+        <?php
         });
     }
 
@@ -161,17 +176,20 @@ class Alfresco
     private function setupGoogleAnalytics()
     {
         add_action('wp_head', function () {
-            ?>
+        ?>
             <!-- Google tag (gtag.js) -->
             <script async src="https://www.googletagmanager.com/gtag/js?id=G-LLS9GKDT7C"></script>
             <script>
                 window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
+
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
                 gtag('js', new Date());
 
                 gtag('config', 'G-LLS9GKDT7C');
             </script>
-            <?php
+<?php
         });
     }
 
@@ -193,7 +211,7 @@ class Alfresco
     public function onboardingLoginCheck()
     {
         add_action('template_redirect', function () {
-            if (!is_user_logged_in() && (is_page('workshop-onboarding') || is_page(9302) || is_page(9304) || is_page(9306))) {
+            if (!is_user_logged_in() && (is_page('workshop-onboarding') || is_page(9302) || is_page(9304) || is_page(9306) || is_page(10448) || is_page(10440))) {
                 auth_redirect();
             }
         });
