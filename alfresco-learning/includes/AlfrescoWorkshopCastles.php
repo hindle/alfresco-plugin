@@ -51,26 +51,26 @@ class AlfrescoWorkshopCastles
     public function saveData()
     {
 
-                // Prepate content for the trello card
-                $cardName = $this->schoolName . ' - Castles';
+        // Prepate content for the trello card
+        $cardName = $this->schoolName . ' - Castles';
         $cardContent = $this->getTrelloContent();
         $trello = new AlfrescoTrello();
 
-                // Create the Trello card
+        // Create the Trello card
         try {
             $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_NEW_LIST_ID, $cardName, $cardContent);
         } catch (Exception $e) {
             throw $e;
         }
 
-                // Update custom field values on the card
+        // Update custom field values on the card
         try {
             $trello->updateWorkshopCustomFields($cardId, AlfrescoTrello::WORKSHOP_TYPE_CASTLES, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
         } catch (Exception $e) {
             throw $e;
         }
 
-                // Send the email notification
+        // Send the email notification
         $this->sendEmail($cardId);
     }
 
@@ -136,7 +136,7 @@ class AlfrescoWorkshopCastles
             "Postcode: " . $this->schoolPostcode . "\n\n" .
             "Date: " . $this->bookingDate . "\n\n" .
             "Details: " . $this->bookingDetails . "\n\n\n" .
-                        "https://trello.com/c/" . $cardId;
+            "https://trello.com/c/" . $cardId;
 
         wp_mail($to, $subject, $content);
     }

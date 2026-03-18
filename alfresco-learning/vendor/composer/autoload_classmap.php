@@ -40,5 +40,6 @@ return array(
     'AlfrescoWorkshopGFOL' => $baseDir . '/includes/AlfrescoWorkshopGFOL.php',
     'AlfrescoWorkshopSeaside' => $baseDir . '/includes/AlfrescoWorkshopSeaside.php',
     'AlfrescoWorkshopSpace' => $baseDir . '/includes/AlfrescoWorkshopSpace.php',
+    'AlfrescoWorkshopTrelloCard' => $baseDir . '/includes/AlfrescoWorkshopTrelloCard.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );

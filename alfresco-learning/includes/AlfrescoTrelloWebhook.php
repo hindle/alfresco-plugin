@@ -24,7 +24,17 @@ class AlfrescoTrelloWebhook
         if ($newListId === AlfrescoTrello::WORKSHOP_CAN_POLICY_SENT_LIST_ID) {
             $this->sendCancellationPolicyEmail($cardId);
         }
+
+        // Send the booking confirmation email if the card has been moved to the "Send booking confirmation" list
+        if ($newListId === AlfrescoTrello::WORKSHOP_SEND_BOOKING_CONFIRMATION_LIST_ID) {
+            $this->sendBookingConfirmationEmail($cardId);
+        }
     }
+
+    /*
+     * Get the custom field values for a Trello card as an associative array
+     */
+    public function workshopCronHandler() {}
 
     /*
      * Send the cancellation policy email when the card is moved to the correct list
@@ -36,17 +46,17 @@ class AlfrescoTrelloWebhook
 
         try {
             $customFieldDetails = $trello->getCardCustomFields($cardId);
-        } catch (Exception $e) {
-            $this->sendErrorEmail('System error.', $cardId);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("cancellation policy", "System error.", $cardId);
             throw $e;
             return;
         }
 
         try {
-            $this->validateCustomFieldValues($customFieldDetails);
-        } catch (Exception $e) {
-            $this->sendErrorEmail('Custom fields contain invalid or missing data.', $cardId);
-            throw new Exception('Custom field validation failed: ' . $e->getMessage());
+            $this->validateCoreCustomFieldValues($customFieldDetails);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("cancellation policy", "Custom fields contain invalid or missing data.", $cardId);
+            throw new \Exception('Custom field validation failed: ' . $e->getMessage());
             return;
         }
 
@@ -108,9 +118,70 @@ class AlfrescoTrelloWebhook
     }
 
     /*
+     * Send the booking confirmation email when the card is moved to the correct list
+     */
+    private function sendBookingConfirmationEmail($cardId)
+    {
+        // Get the custom field details for the card
+        $trello = new AlfrescoTrello();
+
+        try {
+            $customFieldDetails = $trello->getCardCustomFields($cardId);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("booking confirmation", "System error.", $cardId);
+            throw $e;
+            return;
+        }
+
+        try {
+            $trelloCard = new AlfrescoWorkshopTrelloCard($customFieldDetails);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("booking confirmation", "Custom fields contain invalid or missing data.", $cardId);
+            throw new \Exception('Custom field validation failed: ' . $e->getMessage());
+            return;
+        }
+
+        $sessionContent = "";
+        if (!empty($trelloCard->session1)) {
+            $sessionContent .= "<li>Session 1: " . $trelloCard->session1 . "</li>";
+        }
+        if (!empty($trelloCard->session2)) {
+            $sessionContent .= "<li>Session 2: " . $trelloCard->session2 . "</li>";
+        }
+        if (!empty($trelloCard->session3)) {
+            $sessionContent .= "<li>Session 3: " . $trelloCard->session3 . "</li>";
+        }
+
+        if (empty($sessionContent)) {
+            $this->sendErrorEmail("booking confirmation", "No session information provided in custom fields.", $cardId);
+            throw new \Exception('At least one session custom field must be filled out.');
+            return;
+        }
+
+        $content = "<p>Hi " . $trelloCard->adminName . ",</p>"
+            . "<p>Thank you for responding to our payment policy email and providing us with the requested information.</p>"
+            . "<p>This email is to confirm your booking with Alfresco Learning for the " . $trelloCard->workshopName . " on " . $trelloCard->date . ". The timings for these workshops are as follows:</p>"
+            . "<ul>"
+            . $sessionContent
+            . "</ul>"
+            . "<p>$trelloCard->teacherName please keep your eyes peeled for the welcome email which will be sent about 2 weeks prior to your workshop booking. This will include your risk benefit assessment, letter to parents and all the details you need to help you, your team and your children prepare for the workshop. This will also contain a reminder of the details of your workshop as discussed.</p>"
+            . "<p>Thank you for choosing Alfresco Learning! We look forward to meeting you!</p>";
+
+        // Send the email
+        $to = $trelloCard->adminEmail;
+        $headers[] = "Cc: $trelloCard->teacherEmail, bookings@alfrescolearning.co.uk";
+        $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+        $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
+        $headers[] = "Content-Type: text/html; charset=UTF-8";
+        // @TODO - confirm subject line for booking confirmation email
+        $subject = $trelloCard->schoolName . " - workshop booking confirmed";
+        wp_mail($to, $subject, $content, $headers);
+    }
+
+    /*
      * Validate all required custom fields have the required data
      */
-    private function validateCustomFieldValues($customFieldValues)
+    private function validateCoreCustomFieldValues($customFieldValues)
     {
         $requiredTextFields = [
             AlfrescoTrello::WORKSHOP_CARD_ADMIN_NAME_FIELD_ID,
@@ -135,11 +206,11 @@ class AlfrescoTrelloWebhook
     /*
      * Send email in the event of an error
      */
-    private function sendErrorEmail($errorMessage, $cardId)
+    private function sendErrorEmail($emailType, $errorMessage, $cardId)
     {
         $to = ["ah.hindle@gmail.com", "bookings@alfrescolearning.co.uk"];
-        $subject = "[ERROR] Failed to send cancellation policy email";
-        $content = "An error occurred while trying to send the cancellation policy email:\n\n$errorMessage\n\nhttps://trello.com/c/$cardId";
+        $subject = "[ERROR] Failed to send automated email";
+        $content = "An error occurred while trying to send the $emailType email:\n\n$errorMessage\n\nhttps://trello.com/c/$cardId";
 
         wp_mail($to, $subject, $content);
     }

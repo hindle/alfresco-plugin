@@ -120,6 +120,7 @@ class ComposerStaticInit20fad51902f91e7fd3039e016a6556b5
         'AlfrescoWorkshopGFOL' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopGFOL.php',
         'AlfrescoWorkshopSeaside' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopSeaside.php',
         'AlfrescoWorkshopSpace' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopSpace.php',
+        'AlfrescoWorkshopTrelloCard' => __DIR__ . '/../..' . '/includes/AlfrescoWorkshopTrelloCard.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
