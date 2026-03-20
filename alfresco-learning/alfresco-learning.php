@@ -223,8 +223,8 @@ class Alfresco
     private function defineCronJobs()
     {
         add_action('al_trello_workshop_welcome_email', function () {
-            $alfrescoTrello = new AlfrescoTrello();
-            $alfrescoTrello->sendWorkshopWelcomeEmails();
+            //$alfrescoTrello = new AlfrescoTrello();
+            //$alfrescoTrello->sendWorkshopWelcomeEmails();
         });
     }
 }

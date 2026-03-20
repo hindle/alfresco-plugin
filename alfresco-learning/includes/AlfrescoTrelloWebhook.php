@@ -49,6 +49,8 @@ class AlfrescoTrelloWebhook
         // If the date is two weeks or less and the email sent bool is false, send the welcome email and update the email sent bool to true
         // Validate the custom fields are set correctly before send the email
 
+        $cardId = "TEMP";
+
         try {
             $customFieldDetails = $trello->getCardCustomFields($cardId);
         } catch (\Exception $e) {
