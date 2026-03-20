@@ -32,9 +32,40 @@ class AlfrescoTrelloWebhook
     }
 
     /*
-     * Get the custom field values for a Trello card as an associative array
+     * Send the welcome email - triggered by wordpress cron job
      */
-    public function workshopCronHandler() {}
+    public function sendWelcomeEmail()
+    {
+        // Get the custom field details for the card
+        $trello = new AlfrescoTrello();
+
+        // Get all the cards in the "Send welcome email" list
+
+        // If no cards, bomb out
+
+        // Loop over any retrieved cards
+        // For each card, get the custom fields
+        // Then check the workshop date and the email sent bool
+        // If the date is two weeks or less and the email sent bool is false, send the welcome email and update the email sent bool to true
+        // Validate the custom fields are set correctly before send the email
+
+        try {
+            $customFieldDetails = $trello->getCardCustomFields($cardId);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("welcome", "System error.", $cardId);
+            throw $e;
+            return;
+        }
+
+        // @TODO Create custom validator to replace the core one here
+        try {
+            $this->validateCoreCustomFieldValues($customFieldDetails);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("welcome", "Custom fields contain invalid or missing data.", $cardId);
+            throw new \Exception('Custom field validation failed: ' . $e->getMessage());
+            return;
+        }
+    }
 
     /*
      * Send the cancellation policy email when the card is moved to the correct list
