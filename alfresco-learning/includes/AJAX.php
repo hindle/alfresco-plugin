@@ -1,12 +1,15 @@
 <?php
 
-class AlfrescoAJAX
+namespace Alfresco;
+
+class AJAX
 {
     /*
      * Register functions with hooks
      */
     public function register()
     {
+        // @TODO replace the chained function calls with single call passing the parameters e.g. add_action('wp_ajax_nopriv_ALFRESCO_WORKSHOP_GFOL', [$this, 'handleWorkshopFormGFoL'], );
         add_action('wp_ajax_nopriv_ALFRESCO_WORKSHOP_GFOL', [$this, 'handleWorkshopFormGFoL']);
         add_action('wp_ajax_ALFRESCO_WORKSHOP_GFOL', [$this, 'handleWorkshopFormGFoL']);
 
@@ -32,7 +35,7 @@ class AlfrescoAJAX
         add_action('wp_ajax_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
 
         $this->downloadEndpoint();
-                $this->trelloWorkshopBoardWebhook();
+        $this->trelloWorkshopBoardWebhook();
     }
 
     /*
@@ -51,9 +54,9 @@ class AlfrescoAJAX
 
                         try {
                             $fileUrl = $this->handleDownload($request);
-                        } catch (Exception $e) {
+                        } catch (\Exception $e) {
                             $error = $e->getMessage();
-                            $response = new WP_REST_Response("{'error':'$error'}");
+                            $response = new \WP_REST_Response("{'error':'$error'}");
                             $response->set_status(400);
                             return $response;
                         }
@@ -62,34 +65,6 @@ class AlfrescoAJAX
                         $responseBody = ['file' => $encodedUrl];
                         return $responseBody;
                     },
-                ]
-            );
-        });
-    }
-
-    /*
-     * Handle Trello webhooks for workshop board
-     */
-    private function trelloWorkshopBoardWebhook()
-    {
-        add_action('rest_api_init', function () {
-            $handler = function (\WP_REST_Request $request) {
-                $requestBody = $request->get_body();
-                //file_put_contents('/tmp/trello-webhook.log', $requestBody . "\n", FILE_APPEND);
-
-                $trelloWebhook = new AlfrescoTrelloWebhook();
-                $trelloWebhook->workshopBoardHandler($request);
-
-                return 'Webhook received';
-            };
-
-            register_rest_route(
-                "alfresco/v1",
-                "/trello-workshop-webhook",
-                [
-                    'methods'             => ['POST', 'GET'],
-                    'permission_callback' => '__return_true',
-                    'callback'            => $handler,
                 ]
             );
         });
@@ -106,28 +81,56 @@ class AlfrescoAJAX
         $params = $request->get_query_params();
 
         if (!$_COOKIE['Outseta_nocode_accessToken'] || $_COOKIE['Outseta_nocode_accessToken']  == null) {
-            throw new Exception('Missing Outseta token');
+            throw new \Exception('Missing Outseta token');
             return;
         }
 
         if (!$params['file'] || $params['file'] === null) {
-            throw new Exception('Missing requested file name');
+            throw new \Exception('Missing requested file name');
             return;
         }
 
         $outsetaToken = $_COOKIE['Outseta_nocode_accessToken'];
         $file = $params['file'];
 
-        $phDownload = new AlfrescoPHDownload();
+        $phDownload = new PHDownload();
 
         try {
             $fileUrl = $phDownload->getFileUrl($outsetaToken, $file);
         } catch (\Exception $e) {
-            throw new Exception('Error retrieving file:' . $e->getMessage());
+            throw new \Exception('Error retrieving file:' . $e->getMessage());
             return;
         }
 
         return $fileUrl;
+    }
+
+    /*
+     * Handle Trello webhooks for workshop board
+     */
+    private function trelloWorkshopBoardWebhook()
+    {
+        add_action('rest_api_init', function () {
+            $handler = function (\WP_REST_Request $request) {
+                //$requestBody = $request->get_body();
+                //file_put_contents('/tmp/trello-webhook.log', $requestBody . "\n", FILE_APPEND);
+
+                $handler = new Trello\WebhookHandler();
+                $handler->workshopBoard($request);
+
+                return 'Webhook received';
+            };
+
+            register_rest_route(
+                "alfresco/v1",
+                "/trello-workshop-webhook",
+                [
+                    'methods'             => ['POST', 'GET'],
+                    'permission_callback' => '__return_true',
+                    'callback'            => $handler,
+                ]
+            );
+        });
     }
 
     /*
@@ -174,16 +177,16 @@ class AlfrescoAJAX
 
         switch ($workshop) {
             case 'GFOL':
-                $workshopHandler = new AlfrescoWorkshopGFOL($data);
+                $workshopHandler = new Workshop\GFOL($data);
                 break;
             case 'SPACE':
-                $workshopHandler = new AlfrescoWorkshopSpace($data);
+                $workshopHandler = new Workshop\Space($data);
                 break;
             case 'CASTLES':
-                $workshopHandler = new AlfrescoWorkshopCastles($data);
+                $workshopHandler = new Workshop\Castles($data);
                 break;
             case 'SEASIDE':
-                $workshopHandler = new AlfrescoWorkshopSeaside($data);
+                $workshopHandler = new Workshop\Seaside($data);
                 break;
             default:
                 echo 'Invalid workshop handler';
@@ -200,7 +203,7 @@ class AlfrescoAJAX
 
         try {
             $workshopHandler->saveData();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             echo 'Error saving data';
             http_response_code(400);
@@ -218,18 +221,18 @@ class AlfrescoAJAX
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody);
 
-        $invoiceHandler = new AlfrescoInvoice($data);
+        $invoiceHandler = new Enquiry\Invoice($data);
 
         $dataValid = $invoiceHandler->validateData();
         if (!$dataValid) {
             echo 'Invalid data';
             http_response_code(400);
-                        exit();
+            exit();
         }
 
         try {
             $invoiceHandler->saveData();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo 'Error saving data';
             http_response_code(400);
             exit();
@@ -246,7 +249,7 @@ class AlfrescoAJAX
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody);
 
-        $trainingHandler = new AlfrescoTraining($data);
+        $trainingHandler = new Enquiry\Training($data);
 
         $dataValid = $trainingHandler->validateData();
         if (!$dataValid) {
@@ -257,7 +260,7 @@ class AlfrescoAJAX
 
         try {
             $trainingHandler->saveData();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo 'Error saving data';
             http_response_code(400);
             exit();
@@ -290,7 +293,7 @@ class AlfrescoAJAX
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody);
 
-        $feedbackHandler = new AlfrescoFeedback($type, $data);
+        $feedbackHandler = new Enquiry\Feedback($type, $data);
 
         $dataValid = $feedbackHandler->validateData();
         if (!$dataValid) {
@@ -301,7 +304,7 @@ class AlfrescoAJAX
 
         try {
             $feedbackHandler->saveData();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo 'Error saving data';
             http_response_code(400);
             exit();

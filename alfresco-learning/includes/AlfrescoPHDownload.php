@@ -1,11 +1,13 @@
 <?php
 
+namespace Alfresco;
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use GuzzleHttp\Client;
 use Aws\S3\S3Client;
 
-class AlfrescoPHDownload
+class PHDownload
 {
     /*
      * Check the user has a valid subscription before sending the file
@@ -14,13 +16,13 @@ class AlfrescoPHDownload
     {
         $userDetails = $this->getUserDetailsFromToken($outsetaToken);
         if ($userDetails === false) {
-            throw new Exception('Failed to get user details.');
+            throw new \Exception('Failed to get user details.');
             return;
         }
 
         $validSubscription = $this->userHasValidSubscription($userDetails);
         if ($validSubscription === false) {
-            throw new Exception('User does not have a valid subscription.');
+            throw new \Exception('User does not have a valid subscription.');
             return;
         }
 
@@ -64,7 +66,7 @@ class AlfrescoPHDownload
 
             wp_mail($to, $subject, $content);
 
-            throw new Exception('File does not exist in S3.');
+            throw new \Exception('File does not exist in S3.');
             return;
         }
 
@@ -83,7 +85,7 @@ class AlfrescoPHDownload
         } catch (\Exception $e) {
             error_log('Error getting file from S3:' . $e->getMessage());
 
-            throw new Exception('Error getting file from S3.');
+            throw new \Exception('Error getting file from S3.');
             return;
         }
 
@@ -96,7 +98,7 @@ class AlfrescoPHDownload
     private function getUserDetailsFromToken($token)
     {
         $key = <<<END
------BEGIN CERTIFICATE----- 
+-----BEGIN CERTIFICATE-----
 MIIC1jCCAb6gAwIBAgIQAJ9poI8F+R6Mfd7TPn+PZTANBgkqhkiG9w0BAQ0FADAmMSQwIgYDVQQD
 DBtkaWdpdGFsLWR1YWxpdHkub3V0c2V0YS5jb20wIBcNMjExMjEzMTMyMTAyWhgPMjEyMTEyMTMx
 MzIxMDJaMCYxJDAiBgNVBAMMG2RpZ2l0YWwtZHVhbGl0eS5vdXRzZXRhLmNvbTCCASIwDQYJKoZI
@@ -110,12 +112,12 @@ j4iuR6vBdfPjzWL17ocuGp8LSRh5pM5K2H87MKzS6CnMrjL0GmHn8Lv+sYttNttRfkPK1osOhjTo
 4S9v7+/CablcR77gsfee3nTomxK7y2UaenXnfJuoe9Ed2yr/etlKyUWUMQ4BpJBHqxIbVcxMn5tT
 e6aoNfGUgykZLCkO4LGCSMnthKLxUOs3Ya2u4hSh9iegRODa8BBrojRb4Ftb6cgTC1K0Z7ZvTe+w
 i5o7fH6bo4im78hyoDKPROYIRX29qEJlXkdyW5RiI94j0HBZE5h+5BOSx3wIWw==
------END CERTIFICATE----- 
+-----END CERTIFICATE-----
 END;
 
         try {
             $decodedToken = JWT::decode($token, new Key($key, 'RS256'));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log('JWT decode failed: ' . $e->getMessage());
             return false;
         }
@@ -147,7 +149,7 @@ END;
 
         try {
             $response = $client->request('GET', $url);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log('Error calling Outseta: ' . $e->getMessage());
             return false;
         }
@@ -186,7 +188,7 @@ END;
 
         try {
             $response = $client->request('POST', $url, $body);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log('Error calling Outseta: ' . $e->getMessage());
         }
     }

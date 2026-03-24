@@ -1,19 +1,20 @@
 <?php
 
-class AlfrescoWorkshopGFOL
+namespace Alfresco\Enquiry;
+
+use Alfresco\Trello\Client as Trello;
+use Alfresco\Trello\Constants;
+
+class Training
 {
     private $contactName;
     private $contactEmail;
     private $schoolName;
     private $schoolAddress;
     private $schoolPostcode;
-    private $adminName;
-    private $adminEmail;
     private $bookingDate;
     private $bookingDetails;
-    private $grassSpace;
-    private $spaceOwner;
-    private $spaceOwnerDetails;
+    private $trainingSession;
     private $referrer;
     private $referrerOther;
     private $referrerFriend;
@@ -25,13 +26,9 @@ class AlfrescoWorkshopGFOL
         $this->schoolName = $data->schoolName;
         $this->schoolAddress = $data->schoolAddress;
         $this->schoolPostcode = $data->schoolPostcode;
-        $this->adminName = $data->adminName;
-        $this->adminEmail = $data->adminEmail;
         $this->bookingDate = $data->bookingDate;
         $this->bookingDetails = $data->bookingDetails;
-        $this->grassSpace = $data->grassSpace;
-        $this->spaceOwner = $data->spaceOwner;
-        $this->spaceOwnerDetails = $data->spaceDetails;
+        $this->trainingSession = $data->trainingSession;
         $this->referrer = $data->referrer;
         $this->referrerOther = $data->referrerOther;
         $this->referrerFriend = $data->referrerFriend;
@@ -51,39 +48,35 @@ class AlfrescoWorkshopGFOL
     public function saveData()
     {
 
-                $cardName = $this->schoolName . ' - GFoL';
-        $cardContent = $this->getTrelloContent();
-        $trello = new AlfrescoTrello();
+        $trainingSession = 'Unsure';
+        switch ($this->trainingSession) {
+            case 'full-day':
+                $trainingSession = 'Full day';
+                break;
+            case 'half-day':
+                $trainingSession = 'Half day';
+                break;
+        }
 
-        // Create the Trello card
+        $trelloContent = $this->getTrelloContent($trainingSession);
+        $cardTitle = $this->schoolName . ' - ' . $trainingSession;
+
+        $trello = new Trello();
+
         try {
-            $cardId = $trello->createCard(AlfrescoTrello::WORKSHOP_NEW_LIST_ID, $cardName, $cardContent);
-        } catch (Exception $e) {
+            $cardId = $trello->createCard(Constants::TRAINING_NEW_LIST_ID, $cardTitle, $trelloContent);
+        } catch (\Exception $e) {
             throw $e;
         }
 
-                // Update custom field values on the card
-        try {
-            $trello->updateWorkshopCustomFields($cardId, AlfrescoTrello::WORKSHOP_TYPE_GFOL, $this->contactName, $this->contactEmail, $this->adminName, $this->adminEmail, $this->schoolName, $this->schoolAddress, $this->schoolPostcode);
-        } catch (Exception $e) {
-            throw $e;
-        }
-
-                // Send the email notification
-        $this->sendEmail($cardId);
+        $this->sendEmail($trainingSession, $cardId);
     }
 
     /*
      * Get the content to be used in the trello card description
      */
-    private function getTrelloContent()
+    private function getTrelloContent($trainingSession)
     {
-
-        $spaceOwnerDetails = '';
-        if ($this->spaceOwner === 'other') {
-            $spaceOwnerDetails = 'Space owner details: ' . $this->spaceOwnerDetails . "\n";
-        }
-
         $referrerDetails = '';
         if ($this->referrer === 'other') {
             $referrerDetails = 'Details: ' . $this->referrerOther . "\n";
@@ -100,18 +93,14 @@ class AlfrescoWorkshopGFOL
             $this->contactName . "\n" .
             $this->contactEmail . "\n" .
             "\n" .
-            "**Admin** \n" .
-            $this->adminName . "\n" .
-            $this->adminEmail . "\n" .
+            "**Training session**" . "\n" .
+            $trainingSession . "\n" .
             "\n" .
             "**Date** \n" .
             $this->bookingDate . "\n" .
             "\n" .
             "**Details** \n" .
             $this->bookingDetails . "\n" .
-            "Grass space: " . $this->grassSpace . "\n" .
-            "Space owner: " . $this->spaceOwner . "\n" .
-            $spaceOwnerDetails .
             "\n" .
             "**Referrer** \n" .
             "Type: " . $this->referrer . "\n" .
@@ -123,19 +112,20 @@ class AlfrescoWorkshopGFOL
     /*
      * Send the email notification
      */
-    private function sendEmail($cardId)
+    private function sendEmail($trainingSession, $cardId)
     {
-        $to = ["bookings@alfrescolearning.co.uk"];
-        $subject = "New GFoL workshop enquiry - " . $this->schoolName;
+        $to = ["info@alfrescolearning.co.uk"];
+        $subject = "New training enquiry - " . $this->schoolName;
         $content = "New enquiry added to Trello.\n" .
             "Contact: " . $this->contactName . "\n" .
             "Contact email: " . $this->contactEmail . "\n\n" .
             "School: " . $this->schoolName . "\n" .
             "Address: " . $this->schoolAddress . "\n" .
             "Postcode: " . $this->schoolPostcode . "\n\n" .
+            "Training session: " . $trainingSession . "\n" .
             "Date: " . $this->bookingDate . "\n\n" .
             "Details: " . $this->bookingDetails . "\n\n\n" .
-                        "https://trello.com/c/" . $cardId;
+            "https://trello.com/c/" . $cardId;
 
         wp_mail($to, $subject, $content);
     }

@@ -1,6 +1,11 @@
 <?php
 
-class AlfrescoFeedback
+namespace Alfresco\Enquiry;
+
+use Alfresco\Trello\Client as Trello;
+use Alfresco\Trello\Constants;
+
+class Feedback
 {
     private $feedbackType;
     private $school;
@@ -35,22 +40,22 @@ class AlfrescoFeedback
      */
     public function saveData()
     {
-
         if ($this->feedbackType === 'NEUTRAL') {
             $trelloContent = $this->getNeutralTrelloContent();
         } else {
             $trelloContent = $this->getNegativeTrelloContent();
         }
+        $cardTitle = $this->school . ' - ' . $this->feedbackType;
 
-        $trello = new AlfrescoTrello();
+        $trello = new Trello();
 
         try {
-            $trello->createFeedbackCard($this->school, $this->feedbackType, $trelloContent);
-        } catch (Exception $e) {
+            $cardId = $trello->createCard(Constants::FEEDBACK_NEW_LIST_ID, $cardTitle, $trelloContent);
+        } catch (\Exception $e) {
             throw $e;
         }
 
-        $this->sendEmail();
+        $this->sendEmail($cardId);
     }
 
     /*
@@ -96,16 +101,15 @@ class AlfrescoFeedback
 
     /*
      * Send the email notification
-     *
-     * @TODO get the ID of the card from the create call and include a link to the card in the email
      */
-    private function sendEmail()
+    private function sendEmail($cardId)
     {
         $to = ["hollie@alfrescolearning.co.uk", "jenny@alfrescolearning.co.uk", "angharad@alfrescolearning.co.uk"];
         $subject = "Workshop feedback - " . $this->feedbackType;
         $content = "New workshop feedback added to Trello.\n" .
             "School: " . $this->school . "\n" .
-            "Feedback type: " . $this->feedbackType . "\n\n";
+            "Feedback type: " . $this->feedbackType . "\n\n\n" .
+            "https://trello.com/c/" . $cardId;
 
         wp_mail($to, $subject, $content);
     }

@@ -1,6 +1,11 @@
 <?php
 
-class AlfrescoInvoice
+namespace Alfresco\Enquiry;
+
+use Alfresco\Trello\Client as Trello;
+use Alfresco\Trello\Constants;
+
+class Invoice
 {
     private $plan;
     private $schoolName;
@@ -42,7 +47,6 @@ class AlfrescoInvoice
      */
     public function saveData()
     {
-
         $plan = '';
         switch ($this->plan) {
             case '1-form':
@@ -57,15 +61,16 @@ class AlfrescoInvoice
         }
 
         $trelloContent = $this->getTrelloContent($plan);
-        $trello = new AlfrescoTrello();
+        $cardTitle = $this->schoolName . ' - ' . $plan;
+        $trello = new Trello();
 
         try {
-            $trello->createInvoiceCard($this->schoolName, $plan, $trelloContent);
-        } catch (Exception $e) {
+            $cardId = $trello->createCard(Constants::INVOICE_NEW_LIST_ID, $cardTitle, $trelloContent);
+        } catch (\Exception $e) {
             throw $e;
         }
 
-        $this->sendEmail($plan);
+        $this->sendEmail($plan, $cardId);
     }
 
     /*
@@ -105,12 +110,8 @@ class AlfrescoInvoice
 
     /*
      * Send the email notification
-     *
-     * @TODO get the ID of the card from the create call and include a link to the card in the email
-     *
-     * @TODO add the correct email addresses in
      */
-    private function sendEmail($plan)
+    private function sendEmail($plan, $cardId)
     {
         $to = ["info@alfrescolearning.co.uk"];
         $subject = "New Invoice enquiry - " . $this->schoolName . " - " . $plan;
@@ -120,7 +121,8 @@ class AlfrescoInvoice
             "Contact email: " . $this->accountEmail . "\n\n" .
             "School: " . $this->schoolName . "\n" .
             "Address: " . $this->schoolAddress . "\n" .
-            "Postcode: " . $this->schoolPostcode . "\n\n";
+            "Postcode: " . $this->schoolPostcode . "\n\n\n" .
+            "https://trello.com/c/" . $cardId;
 
         wp_mail($to, $subject, $content);
     }
