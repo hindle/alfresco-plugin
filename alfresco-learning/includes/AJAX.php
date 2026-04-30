@@ -31,11 +31,12 @@ class AJAX
         add_action('wp_ajax_nopriv_ALFRESCO_FEEDBACK_NEUTRAL', [$this, 'handleFeedbackFormNeutral']);
         add_action('wp_ajax_ALFRESCO_FEEDBACK_NEUTRAL', [$this, 'handleFeedbackFormNeutral']);
 
-        add_action('wp_ajax_nopriv_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
+        add_action('wp_ajax_nopriv_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
         add_action('wp_ajax_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
 
         $this->downloadEndpoint();
         $this->trelloWorkshopBoardWebhook();
+        $this->sendWelcomeEmailEndpoint();
     }
 
     /*
@@ -128,6 +129,29 @@ class AJAX
                     'methods'             => ['POST', 'GET'],
                     'permission_callback' => '__return_true',
                     'callback'            => $handler,
+                ]
+            );
+        });
+    }
+
+    /*
+     * Endpoint to trigger sending of welcome emails
+     */
+    private function sendWelcomeEmailEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/test-welcome-email",
+                [
+                    'methods'             => 'GET',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
+                        $handler = new Trello\WorkshopActions();
+                        $handler->sendWelcomeEmails();
+
+                        return 'Welcome emails sent';
+                    },
                 ]
             );
         });

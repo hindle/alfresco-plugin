@@ -13,6 +13,9 @@ class Constants
     // Workshop board list ID's
     public const WORKSHOP_CAN_POLICY_SENT_LIST_ID = '5d2f87810695df832741e57a';
     public const WORKSHOP_SEND_BOOKING_CONFIRMATION_LIST_ID = '5dd575a26a30d16f527800c1';
+    public const WORKSHOP_SEND_WELCOME_EMAIL_LIST_ID = '5dab19cde39109042a204709';
+    //public const WORKSHOP_SEND_WELCOME_EMAIL_LIST_ID = '69f3a875428d434ce5157ffe'; // TESTING
+    public const WORKSHOP_WEATHER_CHECK_LIST_ID = '66e05411928fe3505a662d4c';
 
     // Workshop custom field ID's
     public const WORKSHOP_CARD_DATE_FIELD_ID = '69975fb090fe0200fff1a448';
@@ -27,6 +30,7 @@ class Constants
     public const WORKSHOP_CARD_SESSION_1_FIELD_ID = '69baf8a28e419a4839f3eb6e';
     public const WORKSHOP_CARD_SESSION_2_FIELD_ID = '69baf8b12d53004b0337ff85';
     public const WORKSHOP_CARD_SESSION_3_FIELD_ID = '69baf8bdcc5ead73f68728d8';
+    public const WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID = '69c2e8544eb5928c3921165d';
 
     // Workshop types
     public const WORKSHOP_TYPE_CASTLES = 'castles';

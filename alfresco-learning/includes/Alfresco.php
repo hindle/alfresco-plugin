@@ -194,7 +194,7 @@ class Alfresco
     {
         add_action('wp_enqueue_scripts', function () {
             if (is_singular('al_planning_unit')) {
-                wp_enqueue_script('al-ph-unit', plugin_dir_url(__FILE__) . '/js/phUnit.js');
+                wp_enqueue_script('al-ph-unit', plugin_dir_url(__FILE__) . '../js/phUnit.js');
             }
         });
     }
@@ -208,17 +208,6 @@ class Alfresco
             if (!is_user_logged_in() && (is_page('workshop-onboarding') || is_page(9302) || is_page(9304) || is_page(9306) || is_page(10448) || is_page(10440))) {
                 auth_redirect();
             }
-        });
-    }
-
-    /*
-     * Define cron jobs
-     */
-    private function defineCronJobs()
-    {
-        add_action('al_trello_workshop_welcome_email', function () {
-            //$alfrescoTrello = new AlfrescoTrello();
-            //$alfrescoTrello->sendWorkshopWelcomeEmails();
         });
     }
 }

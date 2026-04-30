@@ -5,47 +5,154 @@ namespace Alfresco\Trello;
 class WorkshopActions
 {
     /*
-     * Send the welcome email - triggered by wordpress cron job
+     * Send the welcome emails - triggered by wordpress cron job
      */
-    public function sendWelcomeEmail()
+    public function sendWelcomeEmails()
     {
         // Get the custom field details for the card
         $trello = new Client();
 
         // Get all the cards in the "Send welcome email" list
+        try {
+            $cards = $trello->getCardsInList(Constants::WORKSHOP_SEND_WELCOME_EMAIL_LIST_ID);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("welcome", "System error.", "");
+            throw $e;
+        }
 
         // If no cards, bomb out
-
-        // Loop over any retrieved cards
-        // For each card, get the custom fields
-        // Then check the workshop date and the email sent bool
-        // If the date is two weeks or less and the email sent bool is false, send the welcome email and update the email sent bool to true
-        // Validate the custom fields are set correctly before send the email
-
-        $cardId = "TEMP";
-
-        try {
-            $customFieldDetails = $trello->getCardCustomFields($cardId);
-        } catch (\Exception $e) {
-            $this->sendErrorEmail("welcome", "System error.", $cardId);
-            throw $e;
+        if (empty($cards)) {
             return;
         }
 
-        // @TODO Create custom validator to replace the core one here
-        try {
-            $card = new WorkshopCard($customFieldDetails);
-        } catch (\Exception $e) {
-            $this->sendErrorEmail("welcome", "Custom fields contain invalid or missing data.", $cardId);
-            throw new \Exception('Custom field validation failed: ' . $e->getMessage());
+        foreach ($cards as $card) {
+            $cardId = $card['id'];
+
+            try {
+                $customFieldDetails = $trello->getCardCustomFields($cardId);
+            } catch (\Exception $e) {
+                $this->sendErrorEmail("welcome", "System error.", $cardId);
+                continue;
+            }
+
+            try {
+                $workshopCard = new WorkshopCard($customFieldDetails);
+                if (!$workshopCard->date) {
+                    throw new \Exception('Workshop date is not set');
+                }
+            } catch (\Exception $e) {
+                // Disabling until the data is populated for older cards
+                //$this->sendErrorEmail("welcome", "Custom fields contain invalid or missing data.", $cardId);
+                continue;
+            }
+
+            // Check if the welcome email has already been sent for this card
+            if ($workshopCard->welcomeEmailSent) {
+                continue;
+            }
+
+            // Check if the workshop date is within 2 weeks
+            $currentDate = new \DateTime();
+            $workshopDate = new \DateTime($workshopCard->rawDate);
+            $interval = $currentDate->diff($workshopDate);
+            if ($interval->days <= 21 && !$interval->invert) {
+                $this->sendWelcomeEmail($workshopCard, $cardId);
+
+                // Update the card to indicate the welcome email has been sent
+                try {
+                    $trello->updateWelcomeEmailSent($cardId);
+                    // move the card to the next list
+                    $trello->moveCardToList($cardId, Constants::WORKSHOP_WEATHER_CHECK_LIST_ID);
+                } catch (\Exception $e) {
+                    $this->sendErrorEmail("welcome", "Failed to update Trello card after sending welcome email: " . $e->getMessage(), $cardId);
+                    continue;
+                }
+            }
+        }
+    }
+
+    /*
+     * Send the welcome email
+     */
+    private function sendWelcomeEmail(WorkshopCard $card, string $cardId)
+    {
+        $sessionContent = "";
+        if (!empty($card->session1)) {
+            $sessionContent .= "<li>Session 1: " . $card->session1 . "</li>";
+        }
+        if (!empty($card->session2)) {
+            $sessionContent .= "<li>Session 2: " . $card->session2 . "</li>";
+        }
+        if (!empty($card->session3)) {
+            $sessionContent .= "<li>Session 3: " . $card->session3 . "</li>";
+        }
+
+        if (empty($sessionContent)) {
+            $this->sendErrorEmail("booking confirmation", "No session information provided in custom fields.", $cardId);
+            throw new \Exception('At least one session custom field must be filled out.');
             return;
         }
+
+        $spaceRequirementsContent = "";
+        switch ($card->workshopType) {
+            case Constants::WORKSHOP_TYPE_SPACE:
+                $spaceRequirementsContent = "<li>Neil Armstrong - ensure access to your school field (minimum 20 metres).</li>";
+                break;
+            case Constants::WORKSHOP_TYPE_SEASIDE:
+                $spaceRequirementsContent = "<li>Seaside - ensure access to a level, open space and a working outdoor tap with a hose connector attached.</li>";
+                break;
+            case Constants::WORKSHOP_TYPE_CASTLES:
+                $spaceRequirementsContent = "<li>Castles - ensure access to a flat, open space.</li>";
+                break;
+            case Constants::WORKSHOP_TYPE_GFOL:
+                $spaceRequirementsContent = "<li>Great Fire of London - ensure access to an area of real grass.</li>";
+                break;
+        }
+
+        $content = "<p>Hi " . $card->teacherName . ",</p>" .
+            "<p>Thank you for booking your $card->workshopName workshop with Alfresco Learning on $card->date! We are looking forward to getting you and your children excited about curriculum based outdoor education!</p>" .
+            "<p><h2>Your workshop details</h2></p>" .
+            "<ul>" .
+            $sessionContent .
+            "</ul>" .
+            "<p><h2>What next?</h2></p>" .
+            "<ul>" .
+            "<li><b>Send home the parent/guardian information leaflet</b> (linked below) so children come dressed and prepared for outdoor learning (choose the correct letter to reflect the weather forecast and time of year).</li>" .
+            "<li><b>Review the risk assessment</b> (linked below). This will need to be signed on the day of the workshop before we begin.</li>" .
+            "<li><b>Ensure the class teacher remains with the class for the duration of the workshop.</b> Our Workshop Leader will lead the session, but as they won't know the children or their individual needs, your presence is essential to support behaviour, wellbeing, and inclusion.</li>" .
+            "<li><b>Workshop-specific space requirements:</b></li>" .
+            "<ul>" .
+            $spaceRequirementsContent .
+            "</ul>" .
+            "<li><b>Inform your site manager</b> about the workshop to ensure there's no grass cutting or other site work that could affect delivery (unless you've arranged for the workshop to be delivered offsite, in which case the workshop will be delivered as planned).</li>" .
+            "</ul>" .
+            "<p>And finally...</p>" .
+            "<p>Relax knowing that your children are going to be inspired and educated by an experienced Workshop Leader who will deliver and resource a fantastic workshop for your topic in your setting!</p>" .
+            "<p>Your assigned Workshop Leader will be in touch 1/2 days prior to the workshop to confirm the weather forecast and update you accordingly. Please let them know parking arrangements and access to your outdoor space.</p>" .
+            "<h2>Documents</h2>" .
+            "<p><a href='https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Risk+assessment.pdf'>Risk assessment</a></p>" .
+            "<p><a href='https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Warm+weather+-+parent+letter.pdf'>Warm weather - parent letter</a></p>" .
+            "<p><a href='https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Cold+weather+-+parent+letter.pdf'>Cold weather - parent letter</a></p>" .
+            "<p>We hope you enjoy a fantastic workshop with your classes!</p>" .
+            "<p>Many thanks,</p>" .
+            "<p>Team Alfresco Learning</p>";
+
+
+        // Send the email
+        $to = $card->teacherEmail;
+        //$to = "ah.hindle@gmail.com";
+        $headers[] = "Cc: bookings@alfrescolearning.co.uk";
+        $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+        $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
+        $headers[] = "Content-Type: text/html; charset=UTF-8";
+        $subject = "Welcome to you Alfresco Learning workshop";
+        wp_mail($to, $subject, $content, $headers);
     }
 
     /*
      * Send the cancellation policy email when the card is moved to the correct list
      */
-    public function sendCancellationPolicyEmail($cardId)
+    public function sendCancellationPolicyEmail(string $cardId)
     {
         // Get the custom field details for the card
         $trello = new Client();
@@ -55,7 +162,6 @@ class WorkshopActions
         } catch (\Exception $e) {
             $this->sendErrorEmail("cancellation policy", "System error.", $cardId);
             throw $e;
-            return;
         }
 
         try {
@@ -66,7 +172,6 @@ class WorkshopActions
         } catch (\Exception $e) {
             $this->sendErrorEmail("cancellation policy", "Custom fields contain invalid or missing data.", $cardId);
             throw new \Exception('Custom field validation failed: ' . $e->getMessage());
-            return;
         }
 
         // DEBUG
@@ -101,7 +206,7 @@ class WorkshopActions
     /*
      * Send the booking confirmation email when the card is moved to the correct list
      */
-    public function sendBookingConfirmationEmail($cardId)
+    public function sendBookingConfirmationEmail(string $cardId)
     {
         // Get the custom field details for the card
         $trello = new Client();
@@ -111,7 +216,6 @@ class WorkshopActions
         } catch (\Exception $e) {
             $this->sendErrorEmail("booking confirmation", "System error.", $cardId);
             throw $e;
-            return;
         }
 
         try {
@@ -122,7 +226,6 @@ class WorkshopActions
         } catch (\Exception $e) {
             $this->sendErrorEmail("booking confirmation", "Custom fields contain invalid or missing data.", $cardId);
             throw new \Exception('Custom field validation failed: ' . $e->getMessage());
-            return;
         }
 
         $sessionContent = "";
@@ -139,7 +242,6 @@ class WorkshopActions
         if (empty($sessionContent)) {
             $this->sendErrorEmail("booking confirmation", "No session information provided in custom fields.", $cardId);
             throw new \Exception('At least one session custom field must be filled out.');
-            return;
         }
 
         $content = "<p>Hi " . $card->adminName . ",</p>"
@@ -165,11 +267,13 @@ class WorkshopActions
     /*
      * Send email in the event of an error
      */
-    private function sendErrorEmail($emailType, $errorMessage, $cardId)
+    private function sendErrorEmail(string $emailType, string $errorMessage, string $cardId)
     {
+        $trelloCardLink = $cardId !== "" ? "https://trello.com/c/$cardId" : "";
+
         $to = ["ah.hindle@gmail.com", "bookings@alfrescolearning.co.uk"];
         $subject = "[ERROR] Failed to send automated email";
-        $content = "An error occurred while trying to send the $emailType email:\n\n$errorMessage\n\nhttps://trello.com/c/$cardId";
+        $content = "An error occurred while trying to send the $emailType email:\n\n$errorMessage\n\n$trelloCardLink";
 
         wp_mail($to, $subject, $content);
     }

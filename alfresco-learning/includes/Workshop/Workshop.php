@@ -6,27 +6,27 @@ use Alfresco\Trello;
 
 abstract class Workshop
 {
-    protected $contactName;
-    protected $contactEmail;
-    protected $schoolName;
-    protected $schoolAddress;
-    protected $schoolPostcode;
-    protected $adminName;
-    protected $adminEmail;
-    protected $bookingDate;
-    protected $bookingDetails;
-    protected $spaceOwner;
-    protected $spaceOwnerDetails;
-    protected $referrer;
-    protected $referrerOther;
-    protected $referrerFriend;
-    protected $workshopName;
-    protected $workshopType;
+    protected string $contactName;
+    protected string $contactEmail;
+    protected string $schoolName;
+    protected string $schoolAddress;
+    protected string $schoolPostcode;
+    protected string $adminName;
+    protected string $adminEmail;
+    protected string $bookingDate;
+    protected string $bookingDetails;
+    protected string $spaceOwner;
+    protected string $spaceOwnerDetails;
+    protected string $referrer;
+    protected string $referrerOther;
+    protected string $referrerFriend;
+    protected string $workshopName;
+    protected string $workshopType;
 
     /*
      * To be used by the constructor to set the core data for the workshop
      */
-    final protected function setCoreData($data)
+    final protected function setCoreData(mixed $data)
     {
         $this->contactName = $data->contactName;
         $this->contactEmail = $data->contactEmail;
@@ -49,7 +49,7 @@ abstract class Workshop
      */
     abstract protected function getTrelloContent();
 
-    protected function getCoreTrelloContent($additionalDetails)
+    protected function getCoreTrelloContent(mixed $additionalDetails)
     {
         $spaceOwnerDetails = '';
         if ($this->spaceOwner === 'other') {
@@ -131,7 +131,7 @@ abstract class Workshop
     /*
      * Send the email notification
      */
-    private function sendEmail($cardId)
+    private function sendEmail(string $cardId)
     {
         $to = ["bookings@alfrescolearning.co.uk"];
         $subject = "New " . $this->workshopName . " workshop enquiry - " . $this->schoolName;

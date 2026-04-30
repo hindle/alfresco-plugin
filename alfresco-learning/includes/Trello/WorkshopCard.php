@@ -13,21 +13,22 @@ class WorkshopCard
     public string $schoolPostcode;
     public string $workshopType;
     public string $workshopName;
+    public string $rawDate;
     public string $date;
     public string $session1;
     public string $session2;
     public string $session3;
+    public bool $welcomeEmailSent = false;
 
     /*
      * Constructor to create a Trello card object with the custom field values from the card
      */
-    public function __construct($customFieldDetails)
+    public function __construct(array $customFieldDetails)
     {
         try {
             $this->validateCoreCustomFieldValues($customFieldDetails);
         } catch (\Exception $e) {
             throw $e;
-            return;
         }
         $this->adminName = $customFieldDetails[Constants::WORKSHOP_CARD_ADMIN_NAME_FIELD_ID]['text'] ?? '';
         $this->adminEmail = $customFieldDetails[Constants::WORKSHOP_CARD_ADMIN_EMAIL_FIELD_ID]['text'] ?? '';
@@ -40,8 +41,12 @@ class WorkshopCard
         $this->session2 = $customFieldDetails[Constants::WORKSHOP_CARD_SESSION_2_FIELD_ID]['text'] ?? '';
         $this->session3 = $customFieldDetails[Constants::WORKSHOP_CARD_SESSION_3_FIELD_ID]['text'] ?? '';
 
-        $rawDate = $customFieldDetails[Constants::WORKSHOP_CARD_DATE_FIELD_ID]['date'];
-        $this->date = date("d/m/Y", strtotime($rawDate));
+        if (isset($customFieldDetails[Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID]) && $customFieldDetails[Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID]['checked'] && $customFieldDetails[Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID]['checked'] === 'true') {
+            $this->welcomeEmailSent = true;
+        }
+
+        $this->rawDate = $customFieldDetails[Constants::WORKSHOP_CARD_DATE_FIELD_ID]['date'];
+        $this->date = date("d/m/Y", strtotime($this->rawDate));
 
         $this->workshopType = $customFieldDetails[Constants::WORKSHOP_CARD_WORKSHOP_TYPE_FIELD_ID]['text'];
         switch ($this->workshopType) {
@@ -63,7 +68,7 @@ class WorkshopCard
     /*
      * Validate the core custom field values
      */
-    private function validateCoreCustomFieldValues($customFieldDetails)
+    private function validateCoreCustomFieldValues(array $customFieldDetails)
     {
         $requiredFields = [
             Constants::WORKSHOP_CARD_ADMIN_NAME_FIELD_ID,

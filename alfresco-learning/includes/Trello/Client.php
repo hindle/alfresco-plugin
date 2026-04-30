@@ -6,9 +6,9 @@ use GuzzleHttp\Client as Guzzle;
 
 class Client
 {
-    private $apiKey;
-    private $apiToken;
-    private $url = 'https://api.trello.com/1/cards';
+    private string $apiKey;
+    private string $apiToken;
+    private string $url = 'https://api.trello.com/1/cards';
 
     public function __construct()
     {
@@ -24,7 +24,7 @@ class Client
     /*
      * Add a Trello card
      */
-    public function createCard($listId, $name, $description)
+    public function createCard(string $listId, string $name, string $description)
     {
         $headers = ['headers' => [
             'Content-Type' => 'application/json',
@@ -57,7 +57,7 @@ class Client
     /*
      * Update custom field values for a Workshop card
      */
-    public function updateWorkshopCustomFields($cardId, $workshopType, $teacherName, $teacherEmail, $adminName, $adminEmail, $schoolName, $schoolAddress, $schoolPostcode)
+    public function updateWorkshopCustomFields(string $cardId, string $workshopType, string $teacherName, string $teacherEmail, string $adminName, string $adminEmail, string $schoolName, string $schoolAddress, string $schoolPostcode)
     {
         $headers = ['headers' => [
             'Content-Type' => 'application/json',
@@ -123,7 +123,7 @@ class Client
     /*
      * Get custom field values for a Workshop card
      */
-    public function getCardCustomFields($cardId)
+    public function getCardCustomFields(string $cardId)
     {
         $headers = ['headers' => [
             'Content-Type' => 'application/json',
@@ -162,5 +162,97 @@ class Client
         }
 
         return $data;
+    }
+
+    /*
+     * Get the list of all cards in the send welcome email list
+     */
+    public function getCardsInList(string $listId)
+    {
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+        ]];
+
+        $guzzle = new Guzzle($headers);
+
+        $url = "https://api.trello.com/1/lists/$listId/cards";
+        $options = [
+            'query' => [
+                'key' => $this->apiKey,
+                'token' => $this->apiToken
+            ],
+        ];
+
+        try {
+            $response = $guzzle->request('GET', $url, $options);
+        } catch (\Exception $e) {
+            echo 'Error calling Trello: ' . $e->getMessage();
+            throw new \Exception('Failed to get Trello cards in list');
+        }
+
+        // Get the card details from the response as an associative array
+        $body = (string) $response->getBody();
+        return json_decode($body, true);
+    }
+
+    /*
+     * Update a card to show the welcome email has been sent
+     */
+    public function updateWelcomeEmailSent(string $cardId)
+    {
+        $url = "https://api.trello.com/1/card/$cardId/customField/" . Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID . "/item";
+
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+        ]];
+
+        $guzzle = new Guzzle($headers);
+
+        $body = '{
+                    "value": {"checked": "true"}
+                }';
+
+        $options = [
+            'query' => [
+                'key' => $this->apiKey,
+                'token' => $this->apiToken
+            ],
+            'body' => $body
+        ];
+
+        try {
+            $guzzle->request('PUT', $url, $options);
+        } catch (\Exception $e) {
+            echo 'Error calling Trello: ' . $e->getMessage();
+            throw new \Exception('Failed to update Trello card custom field for welcome email sent');
+        }
+    }
+
+    /*
+     * Move card to a new list
+     */
+    public function moveCardToList(string $cardId, string $newListId)
+    {
+        $url = "https://api.trello.com/1/cards/$cardId";
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+        ]];
+
+        $guzzle = new Guzzle($headers);
+
+        $options = [
+            'query' => [
+                'key' => $this->apiKey,
+                'token' => $this->apiToken,
+                'idList' => $newListId
+            ],
+        ];
+
+        try {
+            $guzzle->request('PUT', $url, $options);
+        } catch (\Exception $e) {
+            echo 'Error calling Trello: ' . $e->getMessage();
+            throw new \Exception('Failed to move Trello card to new list');
+        }
     }
 }
