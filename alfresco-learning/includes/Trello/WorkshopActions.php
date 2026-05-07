@@ -197,7 +197,7 @@ class WorkshopActions
             $workshopDate = new \DateTime($workshopCard->rawDate);
             $interval = $currentDate->diff($workshopDate);
             if ($interval->days <= 2 && !$interval->invert) {
-                $this->sendWeatherCheckEmail($workshopCard, $cardId);
+                $this->sendWeatherCheckEmail($workshopCard);
 
                 try {
                     $trello->updateWeatherCheckEmailSent($cardId);
@@ -213,11 +213,11 @@ class WorkshopActions
     /*
      * Send the weather check email
      */
-    private function sendWeatherCheckEmail(WorkshopCard $card, string $cardId)
+    private function sendWeatherCheckEmail(WorkshopCard $card)
     {
         $content = "<p>The weather check email is due for " . $card->schoolName . " for the workshop booked on " . $card->date . ". Please send it as soon as possible.</p>"
             . "Remember to check the weather across multiple apps and use the handbooks to support your analysis of suitability for the workshop.</p>"
-            . "<p>If your workshop needs to rescheduled please follow the rescheduling flow chart provided in the workshop handbook and inform the central team via the weather group chat.</p>";
+            . "<p>If your workshop needs to be rescheduled please follow the rescheduling flow chart provided in the workshop handbook and inform the central team via the weather group chat.</p>";
 
         // Send the email
         $to = $card->workshopLeaderEmail;
@@ -340,6 +340,12 @@ class WorkshopActions
         $headers[] = "Content-Type: text/html; charset=UTF-8";
         $subject = $card->schoolName . " - workshop booking confirmed";
         wp_mail($to, $subject, $content, $headers);
+
+        try {
+            $trello->moveCardToList($cardId, Constants::WORKSHOP_SEND_INVOICE_LIST_ID);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("booking confirmation", "Failed to move Trello card after sending booking confirmation email: " . $e->getMessage(), $cardId);
+        }
     }
 
     /*
