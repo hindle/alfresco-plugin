@@ -58,10 +58,8 @@ class WorkshopActions
             if ($interval->days <= 21 && !$interval->invert) {
                 $this->sendWelcomeEmail($workshopCard, $cardId);
 
-                // Update the card to indicate the welcome email has been sent
                 try {
                     $trello->updateWelcomeEmailSent($cardId);
-                    // move the card to the next list
                     $trello->moveCardToList($cardId, Constants::WORKSHOP_WEATHER_CHECK_LIST_ID);
                 } catch (\Exception $e) {
                     $this->sendErrorEmail("welcome", "Failed to update Trello card after sending welcome email: " . $e->getMessage(), $cardId);
@@ -140,12 +138,93 @@ class WorkshopActions
 
         // Send the email
         $to = $card->teacherEmail;
-        //$to = "ah.hindle@gmail.com";
         $headers[] = "Cc: bookings@alfrescolearning.co.uk";
         $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
         $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
         $headers[] = "Content-Type: text/html; charset=UTF-8";
         $subject = "Welcome to you Alfresco Learning workshop";
+        wp_mail($to, $subject, $content, $headers);
+    }
+
+    public function sendWeatherCheckEmails()
+    {
+        $trello = new Client();
+
+        // Get all the cards in the "Send welcome email" list
+        try {
+            $cards = $trello->getCardsInList(Constants::WORKSHOP_WEATHER_CHECK_LIST_ID);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("weather check", "System error.", "");
+            throw $e;
+        }
+
+        // If no cards, bomb out
+        if (empty($cards)) {
+            return;
+        }
+
+        foreach ($cards as $card) {
+            $cardId = $card['id'];
+
+            try {
+                $customFieldDetails = $trello->getCardCustomFields($cardId);
+            } catch (\Exception $e) {
+                $this->sendErrorEmail("weather check", "System error.", $cardId);
+                continue;
+            }
+
+            try {
+                $workshopCard = new WorkshopCard($customFieldDetails);
+                if (!$workshopCard->date) {
+                    throw new \Exception('Workshop date is not set');
+                }
+                if (!$workshopCard->workshopLeaderEmail || $workshopCard->workshopLeaderEmail === '') {
+                    throw new \Exception('Workshop leader email is not set');
+                }
+            } catch (\Exception $e) {
+                // Disabling until the data is populated for older cards
+                //$this->sendErrorEmail("weather check", "Custom fields contain invalid or missing data.", $cardId);
+                continue;
+            }
+
+            // Check if the weather check email has already been sent for this card
+            if ($workshopCard->weatherCheckEmailSent) {
+                continue;
+            }
+
+            // Check if the workshop date is within 2 days
+            $currentDate = new \DateTime();
+            $workshopDate = new \DateTime($workshopCard->rawDate);
+            $interval = $currentDate->diff($workshopDate);
+            if ($interval->days <= 2 && !$interval->invert) {
+                $this->sendWeatherCheckEmail($workshopCard, $cardId);
+
+                try {
+                    $trello->updateWeatherCheckEmailSent($cardId);
+                    $trello->moveCardToList($cardId, Constants::WORKSHOP_WEATHER_CHECK_SENT_LIST_ID);
+                } catch (\Exception $e) {
+                    $this->sendErrorEmail("weather check", "Failed to update Trello card after sending weather check email: " . $e->getMessage(), $cardId);
+                    continue;
+                }
+            }
+        }
+    }
+
+    /*
+     * Send the weather check email
+     */
+    private function sendWeatherCheckEmail(WorkshopCard $card, string $cardId)
+    {
+        $content = "<p>The weather check email is due for " . $card->schoolName . " for the workshop booked on " . $card->date . ". Please send it as soon as possible.</p>"
+            . "Remember to check the weather across multiple apps and use the handbooks to support your analysis of suitability for the workshop.</p>"
+            . "<p>If your workshop needs to rescheduled please follow the rescheduling flow chart provided in the workshop handbook and inform the central team via the weather group chat.</p>";
+
+        // Send the email
+        $to = $card->workshopLeaderEmail;
+        $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+        $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
+        $headers[] = "Content-Type: text/html; charset=UTF-8";
+        $subject = "Weather check reminder";
         wp_mail($to, $subject, $content, $headers);
     }
 
@@ -255,11 +334,10 @@ class WorkshopActions
 
         // Send the email
         $to = $card->adminEmail;
-        //$headers[] = "Cc: $card->teacherEmail, bookings@alfrescolearning.co.uk";
+        $headers[] = "Cc: $card->teacherEmail, bookings@alfrescolearning.co.uk";
         $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
         $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
         $headers[] = "Content-Type: text/html; charset=UTF-8";
-        // @TODO - confirm subject line for booking confirmation email
         $subject = $card->schoolName . " - workshop booking confirmed";
         wp_mail($to, $subject, $content, $headers);
     }

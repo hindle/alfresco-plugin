@@ -18,7 +18,9 @@ class WorkshopCard
     public string $session1;
     public string $session2;
     public string $session3;
+    public string $workshopLeaderEmail;
     public bool $welcomeEmailSent = false;
+    public bool $weatherCheckEmailSent = false;
 
     /*
      * Constructor to create a Trello card object with the custom field values from the card
@@ -37,12 +39,17 @@ class WorkshopCard
         $this->schoolName = $customFieldDetails[Constants::WORKSHOP_CARD_SCHOOL_NAME_FIELD_ID]['text'] ?? '';
         $this->schoolAddress = $customFieldDetails[Constants::WORKSHOP_CARD_SCHOOL_ADDRESS_FIELD_ID]['text'] ?? '';
         $this->schoolPostcode = $customFieldDetails[Constants::WORKSHOP_CARD_SCHOOL_POSTCODE_FIELD_ID]['text'] ?? '';
+        $this->workshopLeaderEmail = $customFieldDetails[Constants::WORKSHOP_CARD_WORKSHOP_LEADER_EMAIL_FIELD_ID]['text'] ?? '';
         $this->session1 = $customFieldDetails[Constants::WORKSHOP_CARD_SESSION_1_FIELD_ID]['text'] ?? '';
         $this->session2 = $customFieldDetails[Constants::WORKSHOP_CARD_SESSION_2_FIELD_ID]['text'] ?? '';
         $this->session3 = $customFieldDetails[Constants::WORKSHOP_CARD_SESSION_3_FIELD_ID]['text'] ?? '';
 
         if (isset($customFieldDetails[Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID]) && $customFieldDetails[Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID]['checked'] && $customFieldDetails[Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID]['checked'] === 'true') {
             $this->welcomeEmailSent = true;
+        }
+
+        if (isset($customFieldDetails[Constants::WORKSHOP_CARD_WEATHER_CHECK_EMAIL_SENT_FIELD_ID]) && $customFieldDetails[Constants::WORKSHOP_CARD_WEATHER_CHECK_EMAIL_SENT_FIELD_ID]['checked'] && $customFieldDetails[Constants::WORKSHOP_CARD_WEATHER_CHECK_EMAIL_SENT_FIELD_ID]['checked'] === 'true') {
+            $this->weatherCheckEmailSent = true;
         }
 
         $this->rawDate = $customFieldDetails[Constants::WORKSHOP_CARD_DATE_FIELD_ID]['date'];

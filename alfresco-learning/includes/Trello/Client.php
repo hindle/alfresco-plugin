@@ -200,7 +200,23 @@ class Client
      */
     public function updateWelcomeEmailSent(string $cardId)
     {
-        $url = "https://api.trello.com/1/card/$cardId/customField/" . Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID . "/item";
+        $this->updateEmailSentField($cardId, Constants::WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID);
+    }
+
+    /*
+     * Update a card to show the weather check email has been sent
+     */
+    public function updateWeatherCheckEmailSent(string $cardId)
+    {
+        $this->updateEmailSentField($cardId, Constants::WORKSHOP_CARD_WEATHER_CHECK_EMAIL_SENT_FIELD_ID);
+    }
+
+    /*
+     * Update the corresponding email sent custom field
+     */
+    private function updateEmailSentField(string $cardId, string $fieldId)
+    {
+        $url = "https://api.trello.com/1/card/$cardId/customField/$fieldId/item";
 
         $headers = ['headers' => [
             'Content-Type' => 'application/json',
@@ -224,7 +240,7 @@ class Client
             $guzzle->request('PUT', $url, $options);
         } catch (\Exception $e) {
             echo 'Error calling Trello: ' . $e->getMessage();
-            throw new \Exception('Failed to update Trello card custom field for welcome email sent');
+            throw new \Exception('Failed to update Trello card custom field for email sent');
         }
     }
 
@@ -244,7 +260,8 @@ class Client
             'query' => [
                 'key' => $this->apiKey,
                 'token' => $this->apiToken,
-                'idList' => $newListId
+                'idList' => $newListId,
+                'pos' => 'bottom'
             ],
         ];
 
