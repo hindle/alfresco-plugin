@@ -17,6 +17,8 @@ class Constants
     public const WORKSHOP_SEND_WELCOME_EMAIL_LIST_ID = '5dab19cde39109042a204709';
     public const WORKSHOP_WEATHER_CHECK_LIST_ID = '66e05411928fe3505a662d4c';
     public const WORKSHOP_WEATHER_CHECK_SENT_LIST_ID = '69fce49dd9514c2e6d24d509';
+    public const WORKSHOP_FEEDBACK_EMAIL_SENT_LIST_ID = '64632b0d1bb39006cbdca046';
+    public const WORKSHOP_FOLLOW_UP_EMAIL_SENT_LIST_ID = '6a04d9a47f6b9a7606500763';
 
     // Workshop custom field ID's
     public const WORKSHOP_CARD_DATE_FIELD_ID = '69975fb090fe0200fff1a448';

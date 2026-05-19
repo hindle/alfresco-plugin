@@ -146,6 +146,9 @@ class WorkshopActions
         wp_mail($to, $subject, $content, $headers);
     }
 
+    /*
+     * Send the weather check emails
+     */
     public function sendWeatherCheckEmails()
     {
         $trello = new Client();
@@ -345,6 +348,150 @@ class WorkshopActions
             $trello->moveCardToList($cardId, Constants::WORKSHOP_SEND_INVOICE_LIST_ID);
         } catch (\Exception $e) {
             $this->sendErrorEmail("booking confirmation", "Failed to move Trello card after sending booking confirmation email: " . $e->getMessage(), $cardId);
+        }
+    }
+
+    /*
+     * Send the feedback email on the day of the workshop being delivered
+     */
+    public function sendFeedbackEmails()
+    {
+        $trello = new Client();
+
+        // Get all the cards in the "Send welcome email" list
+        try {
+            $cards = $trello->getCardsInList(Constants::WORKSHOP_WEATHER_CHECK_SENT_LIST_ID);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("feedback", "System error.", "");
+            throw $e;
+        }
+
+        // If no cards, bomb out
+        if (empty($cards)) {
+            return;
+        }
+
+        foreach ($cards as $card) {
+            $cardId = $card['id'];
+
+            try {
+                $customFieldDetails = $trello->getCardCustomFields($cardId);
+            } catch (\Exception $e) {
+                $this->sendErrorEmail("feedback", "System error.", $cardId);
+                continue;
+            }
+
+            try {
+                $workshopCard = new WorkshopCard($customFieldDetails);
+                if (!$workshopCard->date) {
+                    throw new \Exception('Workshop date is not set');
+                }
+            } catch (\Exception $e) {
+                // Disabling until the data is populated for older cards
+                //$this->sendErrorEmail("weather check", "Custom fields contain invalid or missing data.", $cardId);
+                continue;
+            }
+
+            // Check if the workshop date is within 2 days
+            $currentDate = new \DateTime();
+            $workshopDate = new \DateTime($workshopCard->rawDate);
+            $interval = $currentDate->diff($workshopDate);
+            $intervalHours = ($interval->days * 24) + $interval->h;
+            if ($intervalHours <= 12) {
+                // Load the email template and replace placeholders with actual values
+                $template = file_get_contents(WP_PLUGIN_DIR . '/alfresco-learning/templates/email-feedback.html');
+                $content = str_replace('{{tp_name}}', $workshopCard->teacherName, $template);
+
+                // Send the email
+                $to = $workshopCard->teacherEmail;
+                $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+                $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
+                $headers[] = "Content-Type: text/html; charset=UTF-8";
+                $subject = "Workshop follow up";
+                wp_mail($to, $subject, $content, $headers);
+
+                try {
+                    $trello->moveCardToList($cardId, Constants::WORKSHOP_FEEDBACK_EMAIL_SENT_LIST_ID);
+                } catch (\Exception $e) {
+                    $this->sendErrorEmail("feedback", "Failed to update Trello card after sending feedback email: " . $e->getMessage(), $cardId);
+                    continue;
+                }
+            }
+        }
+    }
+
+    /*
+     * Send the feedback follow-up email one month after workshop being delivered
+     */
+    public function sendFollowUpEmails()
+    {
+        $trello = new Client();
+
+        // Get all the cards in the "Send welcome email" list
+        try {
+            $cards = $trello->getCardsInList(Constants::WORKSHOP_FEEDBACK_EMAIL_SENT_LIST_ID);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("follow-up", "System error.", "");
+            throw $e;
+        }
+
+        // If no cards, bomb out
+        if (empty($cards)) {
+            return;
+        }
+
+        foreach ($cards as $card) {
+            $cardId = $card['id'];
+
+            try {
+                $customFieldDetails = $trello->getCardCustomFields($cardId);
+            } catch (\Exception $e) {
+                $this->sendErrorEmail("follow-up", "System error.", $cardId);
+                continue;
+            }
+
+            try {
+                $workshopCard = new WorkshopCard($customFieldDetails);
+                if (!$workshopCard->date) {
+                    throw new \Exception('Workshop date is not set');
+                }
+            } catch (\Exception $e) {
+                // Disabling until the data is populated for older cards
+                //$this->sendErrorEmail("weather check", "Custom fields contain invalid or missing data.", $cardId);
+                continue;
+            }
+
+            // Check if the workshop date is within 2 days
+            $currentDate = new \DateTime();
+            $workshopDate = new \DateTime($workshopCard->rawDate);
+            $interval = $currentDate->diff($workshopDate);
+            if ($interval->days >= 28) {
+                $content = "<p>Hi " . $workshopCard->teacherName . ",</p>"
+                    . "<p>It's been about a month since we visited your school for your outdoor workshop, and we just wanted to ask if you might have a moment to leave us a quick review.</p>"
+                    . "<p>If you've already done so, thank you so much, we really appreciate your support! As a small and growing company, Google reviews make a huge difference in helping other teachers and schools discover the workshops and experiences we offer.</p>"
+                    . "<p>We know how busy school life can be, so if you haven't had the chance yet, we completely understand. But if you do have just a couple of minutes while reading this email, a few short words from you would genuinely mean a great deal to us.</p>"
+                    . "<p>You can leave a review here:</p>"
+                    . "<p><a href='https://g.page/r/CXuJpGuvxWCEEAI/review'>Leave a review</a></p>"
+                    . "<p>Thank you again for your time, support and kindness, it truly helps us continue bringing these experiences to more children and schools.</p>"
+                    . "<p>Best wishes,</p>";
+
+                $emoji = json_decode('"\uD83C\uDF3F"'); // 🌿
+
+                // Send the email
+                $to = $workshopCard->teacherEmail;
+                $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+                $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
+                $headers[] = "Content-Type: text/html; charset=UTF-8";
+                $subject = "A quick favour " . $emoji;
+                wp_mail($to, $subject, $content, $headers);
+
+                try {
+                    $trello->moveCardToList($cardId, Constants::WORKSHOP_FOLLOW_UP_EMAIL_SENT_LIST_ID);
+                } catch (\Exception $e) {
+                    $this->sendErrorEmail("follow-up", "Failed to update Trello card after sending follow-up email: " . $e->getMessage(), $cardId);
+                    continue;
+                }
+            }
         }
     }
 

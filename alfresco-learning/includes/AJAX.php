@@ -38,6 +38,8 @@ class AJAX
         $this->trelloWorkshopBoardWebhook();
         $this->sendWelcomeEmailsEndpoint();
         $this->sendWeatherCheckEmailsEndpoint();
+        $this->sendFeedbackEmailEndpoint();
+        $this->sendFollowUpEmailEndpoint();
     }
 
     /*
@@ -175,6 +177,52 @@ class AJAX
                         $handler->sendWeatherCheckEmails();
 
                         return 'Weather check emails sent';
+                    },
+                ]
+            );
+        });
+    }
+
+    /*
+     * Endpoint to trigger sending of Feedback emails
+     */
+    private function sendFeedbackEmailEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/send-feedback-emails",
+                [
+                    'methods'             => 'GET',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
+                        $handler = new Trello\WorkshopActions();
+                        $handler->sendFeedbackEmails();
+
+                        return 'Feedback emails sent';
+                    },
+                ]
+            );
+        });
+    }
+
+    /*
+     * Endpoint to trigger sending of Feedback emails
+     */
+    private function sendFollowUpEmailEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/send-follow-up-emails",
+                [
+                    'methods'             => 'GET',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
+                        $handler = new Trello\WorkshopActions();
+                        $handler->sendFollowUpEmails();
+
+                        return 'Follow-up emails sent';
                     },
                 ]
             );
