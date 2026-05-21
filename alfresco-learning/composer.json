@@ -2,7 +2,8 @@
     "require": {
         "firebase/php-jwt": "^6.11",
         "guzzlehttp/guzzle": "^7.9",
-        "aws/aws-sdk-php": "^3.356"
+        "aws/aws-sdk-php": "^3.356",
+        "monolog/monolog": "^3.10"
     },
     "autoload": {
         "classmap": ["includes/"]
