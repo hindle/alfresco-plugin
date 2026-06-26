@@ -126,6 +126,7 @@ class ComposerStaticInit20fad51902f91e7fd3039e016a6556b5
         'Alfresco\\Alfresco' => __DIR__ . '/../..' . '/includes/Alfresco.php',
         'Alfresco\\Enquiry\\Feedback' => __DIR__ . '/../..' . '/includes/Enquiry/Feedback.php',
         'Alfresco\\Enquiry\\Invoice' => __DIR__ . '/../..' . '/includes/Enquiry/Invoice.php',
+        'Alfresco\\Enquiry\\Payments' => __DIR__ . '/../..' . '/includes/Enquiry/Payments.php',
         'Alfresco\\Enquiry\\Training' => __DIR__ . '/../..' . '/includes/Enquiry/Training.php',
         'Alfresco\\PHDownload' => __DIR__ . '/../..' . '/includes/AlfrescoPHDownload.php',
         'Alfresco\\Trello\\Client' => __DIR__ . '/../..' . '/includes/Trello/Client.php',

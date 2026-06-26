@@ -33,6 +33,7 @@ return array(
     'Alfresco\\Alfresco' => $baseDir . '/includes/Alfresco.php',
     'Alfresco\\Enquiry\\Feedback' => $baseDir . '/includes/Enquiry/Feedback.php',
     'Alfresco\\Enquiry\\Invoice' => $baseDir . '/includes/Enquiry/Invoice.php',
+    'Alfresco\\Enquiry\\Payments' => $baseDir . '/includes/Enquiry/Payments.php',
     'Alfresco\\Enquiry\\Training' => $baseDir . '/includes/Enquiry/Training.php',
     'Alfresco\\PHDownload' => $baseDir . '/includes/AlfrescoPHDownload.php',
     'Alfresco\\Trello\\Client' => $baseDir . '/includes/Trello/Client.php',

@@ -272,4 +272,32 @@ class Client
             throw new \Exception('Failed to move Trello card to new list');
         }
     }
+
+    /*
+     * Add a comment to a card
+     */
+    public function addCommentToCard(string $cardId, string $comment)
+    {
+        $url = "https://api.trello.com/1/cards/$cardId/actions/comments";
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+        ]];
+
+        $guzzle = new Guzzle($headers);
+
+        $options = [
+            'query' => [
+                'key' => $this->apiKey,
+                'token' => $this->apiToken,
+                'text' => $comment
+            ],
+        ];
+
+        try {
+            $guzzle->request('POST', $url, $options);
+        } catch (\Exception $e) {
+            echo 'Error calling Trello: ' . $e->getMessage();
+            throw new \Exception('Failed to add comment to Trello card');
+        }
+    }
 }

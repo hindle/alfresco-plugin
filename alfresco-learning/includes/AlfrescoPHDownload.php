@@ -196,7 +196,9 @@ END;
      * @TODO setup a function to record the download against the user in the database
      * TO be used as a part of the future file locking mechanism
      */
-    private function recordFileDownload() {}
+    private function recordFileDownload()
+    {
+    }
 
     /**
      * Command to create the downloads record db

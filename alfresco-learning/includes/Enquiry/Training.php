@@ -47,14 +47,22 @@ class Training
      */
     public function saveData()
     {
-
         $trainingSession = 'Unsure';
         switch ($this->trainingSession) {
-            case 'full-day':
-                $trainingSession = 'Full day';
+            case 'staff':
+                $trainingSession = 'Staff meeting';
                 break;
-            case 'half-day':
-                $trainingSession = 'Half day';
+            case 'twilight':
+                $trainingSession = 'Twilight';
+                break;
+            case 'half-day-core':
+                $trainingSession = 'Half day inset (core subjects)';
+                break;
+            case 'half-day-foundation':
+                $trainingSession = 'Half day inset (foundation subjects)';
+                break;
+            case 'full-day':
+                $trainingSession = 'Full day inset';
                 break;
         }
 

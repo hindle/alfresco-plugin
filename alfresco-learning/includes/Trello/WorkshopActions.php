@@ -262,16 +262,11 @@ class WorkshopActions
         // Define email content
         $content = "<p>Hi $card->adminName</p>"
             . "<p>$card->teacherName has contacted us to book a $card->workshopName workshop on $card->date.</p>"
-            . "<p>Please can you reply to this email, confirming the following:</p>"
-            . "<ul>"
-            . "<li>That you have read and agreed with the payment policy linked here: https://www.alfrescolearning.co.uk/cancellation-policy</li>"
-            . "<li>The name on the bank account that payment for this workshop will be received from. This will aid us in matching up your future payment, with your booking.</li>"
-            . "</ul>"
+            . "<p>Please complete and submit this form to secure your workshop booking.</p>"
+            . "<p><a href='https://www.alfrescolearning.co.uk/workshops/booking-payment-terms/?trelloCardId=" . $cardId . "'>https://www.alfrescolearning.co.uk/workshops/booking-payment-terms/?trelloCardId=" . $cardId . "</a></p>"
             . "<p>Following this we will send the booking confirmation email through.</p>"
-            . "<p>$card->teacherName has expressed their preferential date for the workshop to happen. The dates for the workshops are booked on a first come, first served basis. To avoid disappointment and secure the booking, please respond to this email as soon as possible.</p>"
-            . "<p>Please be aware that the booking is not secured until we receive the above information.</p>"
-            . "<p>If your school requires a Purchase Order (PO) number on your invoice for this workshop, please send us the PO number as soon as you have one, so we can include it.</p>"
-            . "<p>Please note that you will not have received the invoice yet as invoices are issued around two months before the workshop delivery date, after your booking is confirmed.</p>"
+            . "<p>$card->teacherName has requested a preferred workshop date. As dates are allocated on a first-come, first-served basis, please complete the form as soon as possible to secure the booking.</p>"
+            . "<p>Please note that the booking is not confirmed until we receive the required information.</p>"
             . "<p>Many thanks,</p>"
             . "<p>Alfresco Learning</p>";
 

@@ -40,6 +40,48 @@ class AJAX
         $this->sendWeatherCheckEmailsEndpoint();
         $this->sendFeedbackEmailEndpoint();
         $this->sendFollowUpEmailEndpoint();
+        $this->paymentsFormEndpoint();
+    }
+
+    /*
+     * Endpoint for the payment details form
+     */
+    public function paymentsFormEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/payment-details",
+                [
+                    'methods'             => 'POST',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
+                        $requestBody = $request->get_body();
+                        $data = json_decode($requestBody);
+
+                        $handler = new Enquiry\Payments($data);
+
+                        $dataValid = $handler->validateData();
+                        if (!$dataValid) {
+                            $response = new \WP_REST_Response("{'error':'Invalid data'}");
+                            $response->set_status(400);
+                            return $response;
+                        }
+
+                        try {
+                            $handler->saveData();
+                        } catch (\Exception $e) {
+                            error_log($e->getMessage());
+                            $response = new \WP_REST_Response("{'error':'Error saving data'}");
+                            $response->set_status(400);
+                            return $response;
+                        }
+
+                        return "{'success':'Data saved'}";
+                    },
+                ]
+            );
+        });
     }
 
     /*
@@ -264,7 +306,7 @@ class AJAX
     /**
      * Handle workshop enquiry form submissions
      */
-    public function handleWorkshopForm($workshop)
+    public function handleWorkshopForm(string $workshop)
     {
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody);
