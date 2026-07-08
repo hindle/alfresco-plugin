@@ -36,6 +36,7 @@ class Constants
     public const WORKSHOP_CARD_WELCOME_EMAIL_SENT_FIELD_ID = '69c2e8544eb5928c3921165d';
     public const WORKSHOP_CARD_WORKSHOP_LEADER_EMAIL_FIELD_ID = '69f491355729fc80daed7ee5';
     public const WORKSHOP_CARD_WEATHER_CHECK_EMAIL_SENT_FIELD_ID = '69f49122b2e6ba53591c0029';
+    public const WORKSHOP_CARD_POLICY_REMINDER_FIELD_ID = '6a4e9ed50e5ff7810d17f0fc';
 
     // Workshop types
     public const WORKSHOP_TYPE_CASTLES = 'castles';

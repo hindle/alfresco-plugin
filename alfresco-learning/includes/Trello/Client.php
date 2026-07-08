@@ -300,4 +300,37 @@ class Client
             throw new \Exception('Failed to add comment to Trello card');
         }
     }
+
+    /*
+     * Set the policy reminder date custom field for a card
+     */
+    public function setPolicyReminderDate(string $cardId, \DateTime $reminderDate)
+    {
+        $url = "https://api.trello.com/1/card/$cardId/customField/" . Constants::WORKSHOP_CARD_POLICY_REMINDER_FIELD_ID . "/item";
+
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+        ]];
+
+        $guzzle = new Guzzle($headers);
+
+        $body = '{
+                    "value": {"date": "' . $reminderDate->format('c') . '"}
+                }';
+
+        $options = [
+            'query' => [
+                'key' => $this->apiKey,
+                'token' => $this->apiToken
+            ],
+            'body' => $body
+        ];
+
+        try {
+            $guzzle->request('PUT', $url, $options);
+        } catch (\Exception $e) {
+            echo 'Error calling Trello: ' . $e->getMessage();
+            throw new \Exception('Failed to update Trello card custom field for policy reminder date');
+        }
+    }
 }

@@ -278,7 +278,90 @@ class WorkshopActions
         $headers[] = "Content-Type: text/html; charset=UTF-8";
         $subject = "[Action Required] $card->schoolName - workshop booking";
         wp_mail($to, $subject, $content, $headers);
+
+        // Set the reminder date for the card to 3 days from now
+        $reminderDate = new \DateTime();
+        $reminderDate->modify('+3 days');
+        try {
+            $trello->setPolicyReminderDate($cardId, $reminderDate);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("booking confirmation", "Failed to set policy reminder date.", $cardId);
+            throw $e;
+        }
     }
+
+    /*
+     * Send reminder email if the payment policy has not been accepted
+     * Based on the card still being in the send payment policy column and past the reminder date
+     */
+    public function sendPolicyReminderEmails()
+    {
+        $trello = new Client();
+
+        // Get all the cards in the send payment policy list
+        try {
+            $cards = $trello->getCardsInList(Constants::WORKSHOP_CAN_POLICY_SENT_LIST_ID);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("policy reminder", "System error.", "");
+            throw $e;
+        }
+
+        // If no cards, bomb out
+        if (empty($cards)) {
+            return;
+        }
+
+        foreach ($cards as $card) {
+            $cardId = $card['id'];
+
+            try {
+                $customFieldDetails = $trello->getCardCustomFields($cardId);
+            } catch (\Exception $e) {
+                $this->sendErrorEmail("policy reminder", "System error.", $cardId);
+                continue;
+            }
+
+            try {
+                $workshopCard = new WorkshopCard($customFieldDetails);
+                if (!isset($workshopCard->policyReminderDate)) {
+                    throw new \Exception('Policy reminder date is not set');
+                }
+            } catch (\Exception $e) {
+                //$this->sendErrorEmail("policy reminder", "Policy reminder date is not set", $cardId);
+                error_log("[ERROR] Policy reminder date is not set for card ID: $cardId");
+                continue;
+            }
+
+            // Check if the policy reminder date is today
+            $currentDate = new \DateTime();
+            if ($workshopCard->policyReminderDate->format('Y-m-d') === $currentDate->format('Y-m-d')) {
+                $content = "<p>Hi " . $workshopCard->adminName . "</p>"
+                    . "<p>This is an automatic reminder being sent to you to respond to our payment policy to secure the workshop booking made by " . $workshopCard->teacherName . ".</p>"
+                    . "<p>Please complete and submit this form to secure your workshop booking.</p>"
+                    . "<p><a href='https://www.alfrescolearning.co.uk/workshops/booking-payment-terms/?trelloCardId=" . $cardId . "'>https://www.alfrescolearning.co.uk/workshops/booking-payment-terms/?trelloCardId=" . $cardId . "</a></p>"
+                    . "<p>Following this we will send the booking confirmation email through.</p>"
+                    . "<p>Many thanks,</p>"
+                    . "<p>Alfresco Learning</p>";
+
+                // Send the email
+                $to = $workshopCard->adminEmail;
+                $headers[] = "Cc: $workshopCard->teacherEmail";
+                $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+                $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
+                $headers[] = "Content-Type: text/html; charset=UTF-8";
+                $subject = "[Action Required] $workshopCard->schoolName - workshop booking";
+                wp_mail($to, $subject, $content, $headers);
+
+                // Add a comment to the Trello card indicating that the reminder email has been sent
+                try {
+                    $trello->addCommentToCard($cardId, "Policy reminder email sent to " . $workshopCard->adminEmail . " on " . $currentDate->format('d/m/Y'));
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+        }
+    }
+
 
     /*
      * Send the booking confirmation email when the card is moved to the correct list

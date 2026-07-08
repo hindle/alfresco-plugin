@@ -21,6 +21,7 @@ class WorkshopCard
     public string $workshopLeaderEmail;
     public bool $welcomeEmailSent = false;
     public bool $weatherCheckEmailSent = false;
+    public ?\DateTime $policyReminderDate = null;
 
     /*
      * Constructor to create a Trello card object with the custom field values from the card
@@ -69,6 +70,10 @@ class WorkshopCard
             case 'gfol':
                 $this->workshopName = "Great Fire or London";
                 break;
+        }
+
+        if (isset($customFieldDetails[Constants::WORKSHOP_CARD_POLICY_REMINDER_FIELD_ID]['date'])) {
+            $this->policyReminderDate = new \DateTime($customFieldDetails[Constants::WORKSHOP_CARD_POLICY_REMINDER_FIELD_ID]['date']);
         }
     }
 

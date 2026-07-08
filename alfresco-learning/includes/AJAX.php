@@ -41,6 +41,7 @@ class AJAX
         $this->sendFeedbackEmailEndpoint();
         $this->sendFollowUpEmailEndpoint();
         $this->paymentsFormEndpoint();
+        $this->sendPolicyReminderEmailsEndpoint();
     }
 
     /*
@@ -265,6 +266,29 @@ class AJAX
                         $handler->sendFollowUpEmails();
 
                         return 'Follow-up emails sent';
+                    },
+                ]
+            );
+        });
+    }
+
+    /*
+     * Endpoint to trigger sending of Policy Reminder emails
+     */
+    private function sendPolicyReminderEmailsEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/send-policy-reminder-emails",
+                [
+                    'methods'             => 'GET',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
+                        $handler = new Trello\WorkshopActions();
+                        $handler->sendPolicyReminderEmails();
+
+                        return 'Policy reminder emails sent';
                     },
                 ]
             );
