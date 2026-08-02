@@ -138,6 +138,7 @@ class WorkshopActions
 
         // Send the email
         $to = $card->teacherEmail;
+        $headers = [];
         $headers[] = "Cc: bookings@alfrescolearning.co.uk";
         $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
         $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
@@ -224,6 +225,7 @@ class WorkshopActions
 
         // Send the email
         $to = $card->workshopLeaderEmail;
+        $headers = [];
         $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
         $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
         $headers[] = "Content-Type: text/html; charset=UTF-8";
@@ -272,7 +274,7 @@ class WorkshopActions
 
         // Send the email
         $to = $card->adminEmail;
-        //$headers[] = "Cc: $card->teacherEmail, bookings@alfrescolearning.co.uk";
+        $headers = [];
         $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
         $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
         $headers[] = "Content-Type: text/html; charset=UTF-8";
@@ -345,6 +347,7 @@ class WorkshopActions
 
                 // Send the email
                 $to = $workshopCard->adminEmail;
+                $headers = [];
                 $headers[] = "Cc: $workshopCard->teacherEmail";
                 $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
                 $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
@@ -415,6 +418,7 @@ class WorkshopActions
 
         // Send the email
         $to = $card->adminEmail;
+        $headers = [];
         $headers[] = "Cc: $card->teacherEmail, bookings@alfrescolearning.co.uk";
         $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
         $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
@@ -482,6 +486,7 @@ class WorkshopActions
 
                 // Send the email
                 $to = $workshopCard->teacherEmail;
+                $headers = [];
                 $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
                 $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
                 $headers[] = "Content-Type: text/html; charset=UTF-8";
@@ -557,6 +562,7 @@ class WorkshopActions
 
                 // Send the email
                 $to = $workshopCard->teacherEmail;
+                $headers = [];
                 $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
                 $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
                 $headers[] = "Content-Type: text/html; charset=UTF-8";

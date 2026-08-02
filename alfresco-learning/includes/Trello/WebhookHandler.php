@@ -18,7 +18,7 @@ class WebhookHandler
         $newListId = $webhookData->action->data->listAfter->id;
         $cardId = $webhookData->action->data->card->id;
 
-        // Send the cancelled workshop email if the card has been moved to the "Cancellation policy sent" list
+        // Send the cancellation policy email if the card has been moved to the "Cancellation policy sent" list
         if ($newListId === Constants::WORKSHOP_CAN_POLICY_SENT_LIST_ID) {
             $actions = new WorkshopActions();
             $actions->sendCancellationPolicyEmail($cardId);
