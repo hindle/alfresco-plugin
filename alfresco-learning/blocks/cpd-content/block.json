@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "alfresco/cpd-content",
+	"title": "CPD Content Block",
+	"category": "common",
+	"icon": "media-video",
+	"description": "CPD content block with title, description, video and file download.",
+	"attributes": {
+		"title": {
+			"type": "string",
+			"source": "html",
+			"selector": ".cpd-content__title",
+			"default": ""
+		},
+		"description": {
+			"type": "string",
+			"source": "html",
+			"selector": ".cpd-content__description",
+			"default": ""
+		},
+		"videoId": { "type": "string", "default": "" },
+		"fileId": { "type": "string", "default": "" }
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css"
+}

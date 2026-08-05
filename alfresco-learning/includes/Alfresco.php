@@ -17,6 +17,7 @@ class Alfresco
         $this->setupGoogleAnalytics();
         $this->registerScripts();
         $this->onboardingLoginCheck();
+        $this->registerBlocks();
     }
 
     /*
@@ -80,7 +81,23 @@ class Alfresco
         });
 
         add_action('init', function () {
+            register_post_type('al_cpd_unit', [
+                'labels' => [
+                    'name' => 'CPD Units',
+                    'singular_name' => 'CPD Unit'
+                ],
+                'public' => true,
+                'has_archive' => false,
+                'rewrite' => ['slug' => 'cpd-unit'],
+                'menu_icon' => 'dashicons-welcome-learn-more',
+                'show_in_rest' => true,
+                'supports' => ['editor', 'title', 'revisions', 'thumbnail']
+            ]);
+        });
+
+        add_action('init', function () {
             register_taxonomy_for_object_type('year-group', 'al_planning_unit');
+            register_taxonomy_for_object_type('year-group', 'al_cpd_unit');
             register_taxonomy_for_object_type('subject', 'al_planning_unit');
             register_taxonomy_for_object_type('planning-category', 'al_planning_unit');
         });
@@ -207,6 +224,19 @@ class Alfresco
         add_action('template_redirect', function () {
             if (!is_user_logged_in() && (is_page('workshop-onboarding') || is_page(9302) || is_page(9304) || is_page(9306) || is_page(10448) || is_page(10440))) {
                 auth_redirect();
+            }
+        });
+    }
+
+    /**
+     * Register the plugin's custom Gutenberg blocks.
+     */
+    public function registerBlocks()
+    {
+        add_action('init', function () {
+            $cpd_block_dir = plugin_dir_path(__FILE__) . 'build/cpd-content';
+            if (file_exists($cpd_block_dir . '/block.json')) {
+                register_block_type($cpd_block_dir);
             }
         });
     }

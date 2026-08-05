@@ -1,0 +1,44 @@
+.simple-cta-block {
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 2rem;
+	background: #f5f5f7;
+	border-radius: 8px;
+	text-align: center;
+
+	&__title {
+		font-size: 1.75rem;
+		margin: 0 0 0.75rem;
+	}
+
+	&__description {
+		font-size: 1rem;
+		color: #444;
+		margin: 0 0 1.5rem;
+	}
+
+	&__buttons {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	&__button {
+		padding: 0.75rem 1.5rem;
+		border-radius: 4px;
+		border: none;
+		font-size: 1rem;
+		cursor: pointer;
+
+		&--one {
+			background: #1e40af;
+			color: #fff;
+		}
+
+		&--two {
+			background: #e5e5e5;
+			color: #111;
+		}
+	}
+}

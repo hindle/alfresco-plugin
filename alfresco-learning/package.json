@@ -1,0 +1,16 @@
+{
+  "name": "alfresco-plugin",
+  "version": "1.0.0",
+  "description": "Alfresco plugin for WordPress",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "wp-scripts build --source-path=blocks",
+    "start": "wp-scripts start",
+    "format": "wp-scripts format",
+    "lint:js": "wp-scripts lint-js",
+    "lint:css": "wp-scripts lint-style"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^30.0.0"
+  }
+}

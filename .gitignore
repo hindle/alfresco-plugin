@@ -1,3 +1,5 @@
 alfresco-learning.zip
 *.http
 **/.env
+alfresco-learning/node_modules
+build
