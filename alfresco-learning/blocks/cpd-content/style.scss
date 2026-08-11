@@ -25,6 +25,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+		margin-bottom: -80px; /* Overlap into the following row */
   }
 
 	.cpd-content__wrapper {
@@ -63,6 +64,7 @@
     .cpd-content__image {
       order: 2;
       aspect-ratio: 4 / 3;
+			margin-bottom: 0; /* Remove the overlap into the following row */
     }
 	}
 }

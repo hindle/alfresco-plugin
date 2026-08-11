@@ -2,8 +2,6 @@
 
 namespace Alfresco\Enquiry;
 
-use Alfresco\Alfresco;
-
 class Payments
 {
     private string $name;

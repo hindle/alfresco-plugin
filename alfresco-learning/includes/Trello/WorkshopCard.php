@@ -68,7 +68,7 @@ class WorkshopCard
                 $this->workshopName = "Castles - Kings and Queens";
                 break;
             case 'gfol':
-                $this->workshopName = "Great Fire or London";
+                $this->workshopName = "Great Fire of London";
                 break;
         }
 

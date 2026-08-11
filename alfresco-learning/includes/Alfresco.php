@@ -119,7 +119,7 @@ class Alfresco
     private function setupOutseta()
     {
         add_action('wp_head', function () {
-            ?>
+?>
             <script>
                 var o_options = {
                     domain: 'alfresco-learning.outseta.com',
@@ -143,7 +143,7 @@ class Alfresco
                     }
                 });
             </script>
-            <?php
+        <?php
         });
     }
 
@@ -153,7 +153,7 @@ class Alfresco
     private function setupMailerlite()
     {
         add_action('wp_head', function () {
-            ?>
+        ?>
             <script>
                 (function(m, a, i, l, e, r) {
                     m['MailerLiteObject'] = e;
@@ -178,7 +178,7 @@ class Alfresco
 
                 var ml_account = ml('accounts', '2344751', 'd5t1g6z7h7', 'load');
             </script>
-            <?php
+        <?php
         });
     }
 
@@ -188,7 +188,7 @@ class Alfresco
     private function setupGoogleAnalytics()
     {
         add_action('wp_head', function () {
-            ?>
+        ?>
             <!-- Google tag (gtag.js) -->
             <script async src="https://www.googletagmanager.com/gtag/js?id=G-LLS9GKDT7C"></script>
             <script>
@@ -201,7 +201,7 @@ class Alfresco
 
                 gtag('config', 'G-LLS9GKDT7C');
             </script>
-            <?php
+<?php
         });
     }
 
@@ -232,7 +232,7 @@ class Alfresco
     /**
      * Register the custom "Alfresco" block category, placed first in the list.
      */
-    public function registerBlockCategories()
+    private function registerBlockCategories()
     {
         add_filter('block_categories_all', function ($categories) {
             return array_merge(

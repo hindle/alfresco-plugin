@@ -143,7 +143,7 @@ class WorkshopActions
         $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
         $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
         $headers[] = "Content-Type: text/html; charset=UTF-8";
-        $subject = "Welcome to you Alfresco Learning workshop";
+        $subject = "Welcome to your Alfresco Learning workshop";
         wp_mail($to, $subject, $content, $headers);
     }
 
