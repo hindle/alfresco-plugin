@@ -1,13 +1,23 @@
-.simple-cta-block__buttons {
-	display: flex;
-	gap: 1rem;
-	margin-top: 1rem;
-}
+// Editor-only chrome for the media picker. Scoped to the same generated
+// wrapper class as style.scss so these rules sit at three classes and beat
+// the two-class front-end rules outright, rather than tying on specificity
+// and depending on which stylesheet the editor happens to load last.
+.wp-block-alfresco-cpd-content {
+	// In the editor the picker wrapper is the grid item, not the <img>.
+	.cpd-content__image-field {
+		grid-area: image;
+	}
 
-.simple-cta-block__button-preview {
-	display: inline-block;
-	padding: 0.5rem 1rem;
-	background: #e5e5e5;
-	border-radius: 4px;
-	font-size: 0.85rem;
+	.cpd-content__image-wrapper .cpd-content__image {
+		display: block;
+		max-width: 75%;
+		height: auto;
+		margin: 0 0 0.75rem;
+	}
+
+	.cpd-content__image-actions {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: left;
+	}
 }

@@ -1,10 +1,12 @@
 import { registerBlockType } from '@wordpress/blocks';
 import {
-	RichText,
 	InspectorControls,
+	MediaUpload,
+	MediaUploadCheck,
+	RichText,
 	useBlockProps,
 } from '@wordpress/block-editor';
-import { PanelBody, TextControl } from '@wordpress/components';
+import { Button, PanelBody, TextControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 import metadata from './block.json';
@@ -17,14 +19,30 @@ registerBlockType( metadata.name, {
 		const {
 			title,
 			description,
+			imageId,
+			imageUrl,
+			imageAlt,
 			videoId,
 			fileId,
 		} = attributes;
 
-		// useBlockProps() wires up the standard WP block wrapper (classes,
-		// styles) automatically — this replaces the manual `props.className`
-		// handling from the createElement version.
-		const blockProps = useBlockProps();
+		// useBlockProps() wires up the standard WP block wrapper, including the
+		// generated `wp-block-alfresco-cpd-content` class that the stylesheets
+		// are scoped to. `cpd-content` is passed explicitly (matching save())
+		// because the container rules key off both classes.
+		const blockProps = useBlockProps( { className: 'cpd-content' } );
+
+		const onSelectImage = ( media ) => {
+			setAttributes( {
+				imageId: media.id,
+				imageUrl: media.url,
+				imageAlt: media.alt || '',
+			} );
+		};
+
+		const onRemoveImage = () => {
+			setAttributes( { imageId: undefined, imageUrl: '', imageAlt: '' } );
+		};
 
 		return (
 			<div { ...blockProps }>
@@ -50,6 +68,46 @@ registerBlockType( metadata.name, {
 						/>
 					</PanelBody>
 				</InspectorControls>
+
+				<div className="cpd-content__image-field">
+					<MediaUploadCheck>
+						<MediaUpload
+							onSelect={ onSelectImage }
+							allowedTypes={ [ 'image' ] }
+							value={ imageId }
+							render={ ( { open } ) =>
+								imageUrl ? (
+									<div className="cpd-content__image-wrapper">
+										<img
+											className="cpd-content__image"
+											src={ imageUrl }
+											alt={ imageAlt }
+										/>
+										<div className="cpd-content__image-actions">
+											<Button
+												variant="secondary"
+												onClick={ open }
+											>
+												{ __( 'Replace image' ) }
+											</Button>
+											<Button
+												variant="tertiary"
+												isDestructive
+												onClick={ onRemoveImage }
+											>
+												{ __( 'Remove image' ) }
+											</Button>
+										</div>
+									</div>
+								) : (
+									<Button variant="secondary" onClick={ open }>
+										{ __( 'Select image' ) }
+									</Button>
+								)
+							}
+						/>
+					</MediaUploadCheck>
+				</div>
 
 				<RichText
 					tagName="h1"
@@ -80,6 +138,8 @@ registerBlockType( metadata.name, {
 		const {
 			title,
 			description,
+			imageUrl,
+			imageAlt,
 			videoId,
 			fileId
 		} = attributes;
@@ -90,21 +150,23 @@ registerBlockType( metadata.name, {
 
 		return (
 			<div { ...blockProps }>
-				<RichText.Content
-					tagName="h1"
-					className="cpd-content__title"
-					value={ title }
-				/>
-				<RichText.Content
-					tagName="p"
-					className="cpd-content__description"
-					value={ description }
-				/>
-				<div className="cpd-content__video">
-					<iframe
-						src={`https://videoplayer.cloudflare.com/${videoId}`}
-						frameBorder="0"
-						allowFullScreen
+				{ imageUrl && (
+					<img
+						className="cpd-content__image"
+						src={ imageUrl }
+						alt={ imageAlt }
+					/>
+				) }
+				<div className="cpd-content__wrapper">
+					<RichText.Content
+						tagName="h1"
+						className="cpd-content__title"
+						value={ title }
+					/>
+					<RichText.Content
+						tagName="p"
+						className="cpd-content__description"
+						value={ description }
 					/>
 				</div>
 			</div>

@@ -2,10 +2,10 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "alfresco/cpd-content",
-	"title": "CPD Content Block",
-	"category": "common",
+	"title": "CPD Content",
+	"category": "alfresco",
 	"icon": "media-video",
-	"description": "CPD content block with title, description, video and file download.",
+	"description": "CPD content block with a title, description, image, video and file download.",
 	"attributes": {
 		"title": {
 			"type": "string",
@@ -17,6 +17,21 @@
 			"type": "string",
 			"source": "html",
 			"selector": ".cpd-content__description",
+			"default": ""
+		},
+		"imageId": { "type": "number" },
+		"imageUrl": {
+			"type": "string",
+			"source": "attribute",
+			"selector": ".cpd-content__image",
+			"attribute": "src",
+			"default": ""
+		},
+		"imageAlt": {
+			"type": "string",
+			"source": "attribute",
+			"selector": ".cpd-content__image",
+			"attribute": "alt",
 			"default": ""
 		},
 		"videoId": { "type": "string", "default": "" },

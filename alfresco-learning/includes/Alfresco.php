@@ -17,6 +17,7 @@ class Alfresco
         $this->setupGoogleAnalytics();
         $this->registerScripts();
         $this->onboardingLoginCheck();
+        $this->registerBlockCategories();
         $this->registerBlocks();
     }
 
@@ -225,6 +226,24 @@ class Alfresco
             if (!is_user_logged_in() && (is_page('workshop-onboarding') || is_page(9302) || is_page(9304) || is_page(9306) || is_page(10448) || is_page(10440))) {
                 auth_redirect();
             }
+        });
+    }
+
+    /**
+     * Register the custom "Alfresco" block category, placed first in the list.
+     */
+    public function registerBlockCategories()
+    {
+        add_filter('block_categories_all', function ($categories) {
+            return array_merge(
+                [
+                    [
+                        'slug' => 'alfresco',
+                        'title' => 'Alfresco',
+                    ],
+                ],
+                $categories
+            );
         });
     }
 
