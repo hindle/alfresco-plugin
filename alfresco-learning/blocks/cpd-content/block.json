@@ -35,7 +35,19 @@
 			"default": ""
 		},
 		"videoId": { "type": "string", "default": "" },
-		"fileId": { "type": "string", "default": "" }
+		"fileId": { "type": "string", "default": "" },
+		"fileTitle": {
+			"type": "string",
+			"source": "html",
+			"selector": ".cpd-content__file-title",
+			"default": ""
+		},
+		"fileDescription": {
+			"type": "string",
+			"source": "html",
+			"selector": ".cpd-content__file-description",
+			"default": ""
+		}
 	},
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",

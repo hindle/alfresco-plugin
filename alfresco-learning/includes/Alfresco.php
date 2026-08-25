@@ -16,6 +16,7 @@ class Alfresco
         $this->setupMailerlite();
         $this->setupGoogleAnalytics();
         $this->registerScripts();
+        $this->registerStyles();
         $this->onboardingLoginCheck();
         $this->registerBlockCategories();
         $this->registerBlocks();
@@ -119,7 +120,7 @@ class Alfresco
     private function setupOutseta()
     {
         add_action('wp_head', function () {
-?>
+            ?>
             <script>
                 var o_options = {
                     domain: 'alfresco-learning.outseta.com',
@@ -143,7 +144,7 @@ class Alfresco
                     }
                 });
             </script>
-        <?php
+            <?php
         });
     }
 
@@ -153,7 +154,7 @@ class Alfresco
     private function setupMailerlite()
     {
         add_action('wp_head', function () {
-        ?>
+            ?>
             <script>
                 (function(m, a, i, l, e, r) {
                     m['MailerLiteObject'] = e;
@@ -178,7 +179,7 @@ class Alfresco
 
                 var ml_account = ml('accounts', '2344751', 'd5t1g6z7h7', 'load');
             </script>
-        <?php
+            <?php
         });
     }
 
@@ -188,7 +189,7 @@ class Alfresco
     private function setupGoogleAnalytics()
     {
         add_action('wp_head', function () {
-        ?>
+            ?>
             <!-- Google tag (gtag.js) -->
             <script async src="https://www.googletagmanager.com/gtag/js?id=G-LLS9GKDT7C"></script>
             <script>
@@ -201,7 +202,7 @@ class Alfresco
 
                 gtag('config', 'G-LLS9GKDT7C');
             </script>
-<?php
+            <?php
         });
     }
 
@@ -213,6 +214,24 @@ class Alfresco
         add_action('wp_enqueue_scripts', function () {
             if (is_singular('al_planning_unit')) {
                 wp_enqueue_script('al-ph-unit', plugin_dir_url(__FILE__) . '../js/phUnit.js');
+            }
+        });
+
+        add_action('wp_enqueue_scripts', function () {
+            if (is_singular('al_cpd_unit')) {
+                wp_enqueue_script('al-video-js', 'https://cdnjs.cloudflare.com/ajax/libs/video.js/7.10.2/video.min.js');
+            }
+        });
+    }
+
+    /*
+     * Register any additional css styles that are required
+     */
+    private function registerStyles()
+    {
+        add_action('wp_enqueue_scripts', function () {
+            if (is_singular('al_cpd_unit')) {
+                wp_enqueue_style('al-video-css', 'https://cdnjs.cloudflare.com/ajax/libs/video.js/7.10.2/video-js.min.css');
             }
         });
     }

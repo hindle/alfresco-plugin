@@ -24,6 +24,8 @@ registerBlockType( metadata.name, {
 			imageAlt,
 			videoId,
 			fileId,
+			fileTitle,
+			fileDescription
 		} = attributes;
 
 		// useBlockProps() wires up the standard WP block wrapper, including the
@@ -128,6 +130,26 @@ registerBlockType( metadata.name, {
 						setAttributes( { description: value } )
 					}
 				/>
+
+				<RichText
+					tagName="h2"
+					className="cpd-content__file-title"
+					placeholder={ __( 'Enter file title...' ) }
+					value={ fileTitle }
+					onChange={ ( value ) =>
+						setAttributes( { fileTitle: value } )
+					}
+				/>
+
+				<RichText
+					tagName="p"
+					className="cpd-content__file-description"
+					placeholder={ __( 'Enter file description...' ) }
+					value={ fileDescription }
+					onChange={ ( value ) =>
+						setAttributes( { fileDescription: value } )
+					}
+				/>
 			</div>
 		);
 	},
@@ -141,7 +163,9 @@ registerBlockType( metadata.name, {
 			imageUrl,
 			imageAlt,
 			videoId,
-			fileId
+			fileId,
+			fileTitle,
+			fileDescription
 		} = attributes;
 
 		const blockProps = useBlockProps.save( {
@@ -150,24 +174,62 @@ registerBlockType( metadata.name, {
 
 		return (
 			<div { ...blockProps }>
-				{ imageUrl && (
-					<img
-						className="cpd-content__image"
-						src={ imageUrl }
-						alt={ imageAlt }
-					/>
-				) }
-				<div className="cpd-content__wrapper">
+				<div className="cpd-content__content-container">
+					<div className="cpd-content__image-container">
+						<div className="cpd-content__image-wrapper">
+							{ imageUrl && (
+								<img
+									className="cpd-content__image"
+									src={ imageUrl }
+									alt={ imageAlt }
+								/>
+							) }
+						</div>
+						<div className="cpd-content__image-overlay">
+    					<a href="#" className="cpd-content__image-launch-button" data-video-id={ videoId }>Launch Video</a>
+  					</div>
+					</div>
+					<div className="cpd-content__video-container">
+						<video
+							id="cpd-video"
+							className="cpd-content__video video-js vjs-big-play-centered"
+							controls
+							preload="auto"
+							poster= { imageUrl }
+							data-setup="{}"
+						>
+							<source
+								src="https://customer-f33zs165nr7gyfy4.cloudflarestream.com/6b9e68b07dfee8cc2d116e4c51d6a957/manifest/video.m3u8"
+								type="application/x-mpegURL"
+							/>
+						</video>
+					</div>
+					<div className="cpd-content__title-container">
+						<RichText.Content
+							tagName="h1"
+							className="cpd-content__title"
+							value={ title }
+						/>
+						<RichText.Content
+							tagName="p"
+							className="cpd-content__description"
+							value={ description }
+						/>
+					</div>
+				</div>
+				<div className="cpd-content__spacer" />
+				<div className="cpd-content__file-container">
 					<RichText.Content
-						tagName="h1"
-						className="cpd-content__title"
-						value={ title }
+						tagName="h2"
+						className="cpd-content__file-title"
+						value={ fileTitle }
 					/>
 					<RichText.Content
 						tagName="p"
-						className="cpd-content__description"
-						value={ description }
+						className="cpd-content__file-description"
+						value={ fileDescription }
 					/>
+					<a href="#" className="cpd-content__button" data-file-id={ fileId }>Download Guide</a>
 				</div>
 			</div>
 		);
