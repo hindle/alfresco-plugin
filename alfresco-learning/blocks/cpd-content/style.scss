@@ -15,6 +15,7 @@
 		letter-spacing: 2.5px;
 		line-height: 1;
 		text-transform: uppercase;
+    border: none;
 	}
 
 	.cpd-content__content-container {
@@ -56,7 +57,7 @@
 	}
 
 	.cpd-content__image-launch-button {
-		font-size: 30px;
+		font-size: 24px;
 	}
 
 	.cpd-content__video-container {
@@ -90,12 +91,6 @@
 		font-weight: 600;
 	}
 
-	.cpd-content__description {
-		grid-area: description;
-		font-size: 1rem;
-		color: #444;
-	}
-
 	.cpd-content__spacer {
 		min-height: 100px;
 		background-color: #91D1D0;
@@ -118,6 +113,24 @@
 		border-bottom: 1px solid #444;
 		margin-bottom: 20px;
 	}
+
+  .cpd-content__description,
+	.cpd-content__file-description {
+		font-family: "Crimson Text", serif;
+		font-weight: 400;
+	}
+
+  .cpd-content__error {
+    border: 3px solid #F99584;
+
+    a {
+      color: #F99584;
+    }
+    a:hover {
+      color: #F99584;
+      text-decoration: underline;
+    }
+  }
 
 	@media (max-width: 1050px) {
     .cpd-content__content-container {

@@ -17,20 +17,17 @@ class PHDownload
         $userDetails = $this->getUserDetailsFromToken($outsetaToken);
         if ($userDetails === false) {
             throw new \Exception('Failed to get user details.');
-            return;
         }
 
         $validSubscription = $this->userHasValidSubscription($userDetails);
         if ($validSubscription === false) {
             throw new \Exception('User does not have a valid subscription.');
-            return;
         }
 
         try {
             $fileUrl = $this->getSignedAwsUrl($file, $userDetails['userId']);
         } catch (\Exception $e) {
             throw $e;
-            return;
         }
 
         $this->logOutsetaEvent($userDetails['userId'], basename($file));
@@ -85,7 +82,6 @@ class PHDownload
             error_log('Error getting file from S3:' . $e->getMessage());
 
             throw new \Exception('Error getting file from S3.');
-            return;
         }
 
         return $signedUrl;

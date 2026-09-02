@@ -35,6 +35,7 @@ class AJAX
         add_action('wp_ajax_ALFRESCO_FEEDBACK_NEGATIVE', [$this, 'handleFeedbackFormNegative']);
 
         $this->downloadEndpoint();
+        $this->videoEndpoint();
         $this->trelloWorkshopBoardWebhook();
         $this->sendWelcomeEmailsEndpoint();
         $this->sendWeatherCheckEmailsEndpoint();
@@ -122,19 +123,17 @@ class AJAX
      *
      * Validate Outseta token and then retrieve the file
      */
-    private function handleDownload($request)
+    private function handleDownload(\WP_REST_Request $request)
     {
         // retrieve request params and validate correct data has been sent
         $params = $request->get_query_params();
 
         if (!$_COOKIE['Outseta_nocode_accessToken'] || $_COOKIE['Outseta_nocode_accessToken']  == null) {
             throw new \Exception('Missing Outseta token');
-            return;
         }
 
         if (!$params['file'] || $params['file'] === null) {
             throw new \Exception('Missing requested file name');
-            return;
         }
 
         $outsetaToken = $_COOKIE['Outseta_nocode_accessToken'];
@@ -146,10 +145,68 @@ class AJAX
             $fileUrl = $phDownload->getFileUrl($outsetaToken, $file);
         } catch (\Exception $e) {
             throw new \Exception('Error retrieving file:' . $e->getMessage());
-            return;
         }
 
         return $fileUrl;
+    }
+
+    /*
+     * Register endpoint to handle video URL retrieval
+     */
+    public function videoEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/video",
+                [
+                    'methods'             => 'GET',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
+                        try {
+                            $videoUrl = $this->handleVideo($request);
+                        } catch (\Exception $e) {
+                            $error = $e->getMessage();
+                            $response = new \WP_REST_Response("{'error':'$error'}");
+                            $response->set_status(400);
+                            return $response;
+                        }
+
+                        return ['video_url' => $videoUrl];
+                    },
+                ]
+            );
+        });
+    }
+
+    /*
+     * Handle video URL request for a given video ID
+     */
+    private function handleVideo(\WP_REST_Request $request)
+    {
+        // retrieve request params and validate correct data has been sent
+        $params = $request->get_query_params();
+
+        if (!$_COOKIE['Outseta_nocode_accessToken'] || $_COOKIE['Outseta_nocode_accessToken']  == null) {
+            throw new \Exception('Missing Outseta token');
+        }
+
+        if (!$params['video_id'] || $params['video_id'] === null) {
+            throw new \Exception('Missing requested video ID');
+        }
+
+        $outsetaToken = $_COOKIE['Outseta_nocode_accessToken'];
+        $videoId = $params['video_id'];
+
+        $alfrescoVideo = new AlfrescoVideo();
+
+        try {
+            $videoUrl = $alfrescoVideo->getVideoUrl($outsetaToken, $videoId);
+        } catch (\Exception $e) {
+            throw new \Exception('Error retrieving video URL:' . $e->getMessage());
+        }
+
+        return $videoUrl;
     }
 
     /*

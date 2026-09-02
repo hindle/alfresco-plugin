@@ -47,7 +47,8 @@
 			"source": "html",
 			"selector": ".cpd-content__file-description",
 			"default": ""
-		}
+		},
+		"postId": { "type": "number" }
 	},
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",

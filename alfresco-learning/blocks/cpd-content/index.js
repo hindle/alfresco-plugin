@@ -6,6 +6,9 @@ import {
 	RichText,
 	useBlockProps,
 } from '@wordpress/block-editor';
+import { useSelect } from '@wordpress/data';
+import { store as editorStore } from '@wordpress/editor';
+import { useEffect } from '@wordpress/element';
 import { Button, PanelBody, TextControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
@@ -25,7 +28,8 @@ registerBlockType( metadata.name, {
 			videoId,
 			fileId,
 			fileTitle,
-			fileDescription
+			fileDescription,
+			postId,
 		} = attributes;
 
 		// useBlockProps() wires up the standard WP block wrapper, including the
@@ -33,6 +37,18 @@ registerBlockType( metadata.name, {
 		// are scoped to. `cpd-content` is passed explicitly (matching save())
 		// because the container rules key off both classes.
 		const blockProps = useBlockProps( { className: 'cpd-content' } );
+
+		// Capture the post ID of the current post and save it
+		const currentPostId = useSelect(
+			( select ) => select( editorStore ).getCurrentPostId(),
+			[]
+		);
+
+		useEffect( () => {
+			if ( currentPostId && currentPostId !== postId ) {
+				setAttributes( { postId: currentPostId } );
+			}
+		}, [ currentPostId ] );
 
 		const onSelectImage = ( media ) => {
 			setAttributes( {
@@ -155,7 +171,6 @@ registerBlockType( metadata.name, {
 	},
 
 	// save() defines the static HTML written into the database and served
-	// on the front end — this is where the real <button id="..."> tags are.
 	save: ( { attributes } ) => {
 		const {
 			title,
@@ -165,7 +180,8 @@ registerBlockType( metadata.name, {
 			videoId,
 			fileId,
 			fileTitle,
-			fileDescription
+			fileDescription,
+			postId,
 		} = attributes;
 
 		const blockProps = useBlockProps.save( {
@@ -173,7 +189,7 @@ registerBlockType( metadata.name, {
 		} );
 
 		return (
-			<div { ...blockProps }>
+			<div { ...blockProps } data-post-id={ postId }>
 				<div className="cpd-content__content-container">
 					<div className="cpd-content__image-container">
 						<div className="cpd-content__image-wrapper">
@@ -186,22 +202,19 @@ registerBlockType( metadata.name, {
 							) }
 						</div>
 						<div className="cpd-content__image-overlay">
-    					<a href="#" className="cpd-content__image-launch-button" data-video-id={ videoId }>Launch Video</a>
+    					<a href="#" data-o-authenticated="1" className="cpd-content__image-launch-button" id="cpd-content__video-button">Play Video</a>
+              <a href="/planning-hub/signup/" data-o-anonymous="1" className="cpd-content__image-launch-button">Login to Play</a>
   					</div>
 					</div>
-					<div className="cpd-content__video-container">
+					<div className="cpd-content__video-container" data-video-id={ videoId }>
 						<video
-							id="cpd-video"
+							id="cpd-content__video"
 							className="cpd-content__video video-js vjs-big-play-centered"
 							controls
 							preload="auto"
 							poster= { imageUrl }
 							data-setup="{}"
 						>
-							<source
-								src="https://customer-f33zs165nr7gyfy4.cloudflarestream.com/6b9e68b07dfee8cc2d116e4c51d6a957/manifest/video.m3u8"
-								type="application/x-mpegURL"
-							/>
 						</video>
 					</div>
 					<div className="cpd-content__title-container">
@@ -229,8 +242,19 @@ registerBlockType( metadata.name, {
 						className="cpd-content__file-description"
 						value={ fileDescription }
 					/>
-					<a href="#" className="cpd-content__button" data-file-id={ fileId }>Download Guide</a>
+					<a href="#" data-o-authenticated="1" className="cpd-content__button" id="cpd-content__file-button" data-file-id={ fileId }>Download Guide</a>
+          <a href="/planning-hub/signup/" data-o-anonymous="1" className="cpd-content__button">Login to Download</a>
 				</div>
+        <dialog id="cpd-content__video-error" className="cpd-content__error" closedby='any'>
+          <p>An error has occorred when loading the video.</p>
+          <p>Please refresh the page and try again. If this continues, please email <a href="mailto:info@alfrescolearning.co.uk">info@alfrescolearning.co.uk</a>.</p>
+          <button commandfor="cpd-content__video-error" command="close" className="cpd-content__button">Close</button>
+        </dialog>
+        <dialog id="cpd-content__file-error" className="cpd-content__error" closedby='any'>
+          <p>An error has occorred when downloading the guide.</p>
+          <p>Please refresh the page and try again. If this continues, please email <a href="mailto:info@alfrescolearning.co.uk">info@alfrescolearning.co.uk</a>.</p>
+          <button commandfor="cpd-content__file-error" command="close" className="cpd-content__button">Close</button>
+        </dialog>
 			</div>
 		);
 	},
