@@ -64,6 +64,7 @@
 		display: none;
 		position: relative;
 		aspect-ratio: 16 / 9;
+    padding: 50px 50px 50px 0px;
 	}
 
 	.cpd-content__video {
@@ -73,6 +74,7 @@
 		height: 90%;
 		object-fit: cover;
 		inset: 0;
+    margin-left: 50px;
 	}
 
 	.cpd-content__title-container {

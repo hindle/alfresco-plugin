@@ -42,6 +42,15 @@ function cpdUnitSetup() {
         const imageContainer = document.querySelector(".cpd-content__image-container");
 
         const player = videojs.getPlayer('cpd-content__video');
+
+        player.on('error', function() {
+          console.error("Video playback error:", player.error());
+          const videoErrorDialog = document.getElementById("cpd-content__video-error");
+          if (videoErrorDialog) {
+            videoErrorDialog.showModal();
+          }
+        });
+
         player.src(data.video_url);
 
         imageContainer.style.display = "none";
@@ -84,7 +93,7 @@ function cpdUnitSetup() {
     fetch(url, requestParams)
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`failed to get video source: ${response.status}`);
+          throw new Error(`failed to get file: ${response.status}`);
         }
 
         fileButton.style.pointerEvents = "auto";

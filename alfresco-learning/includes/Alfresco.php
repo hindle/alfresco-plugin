@@ -220,7 +220,7 @@ class Alfresco
         add_action('wp_enqueue_scripts', function () {
             if (is_singular('al_cpd_unit')) {
                 wp_enqueue_script('al-video-js', 'https://cdnjs.cloudflare.com/ajax/libs/video.js/7.10.2/video.min.js');
-                wp_enqueue_script('al-cpd-unit', plugin_dir_url(__FILE__) . '../js/cpdUnit.js');
+                wp_enqueue_script('al-cpd-unit', plugin_dir_url(__FILE__) . '../js/cpdUnit.js', [], '1.0');
             }
         });
     }

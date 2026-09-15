@@ -246,12 +246,12 @@ registerBlockType( metadata.name, {
           <a href="/planning-hub/signup/" data-o-anonymous="1" className="cpd-content__button">Login to Download</a>
 				</div>
         <dialog id="cpd-content__video-error" className="cpd-content__error" closedby='any'>
-          <p>An error has occorred when loading the video.</p>
+          <p>There was an error when loading the video.</p>
           <p>Please refresh the page and try again. If this continues, please email <a href="mailto:info@alfrescolearning.co.uk">info@alfrescolearning.co.uk</a>.</p>
           <button commandfor="cpd-content__video-error" command="close" className="cpd-content__button">Close</button>
         </dialog>
         <dialog id="cpd-content__file-error" className="cpd-content__error" closedby='any'>
-          <p>An error has occorred when downloading the guide.</p>
+          <p>There was an error when downloading the guide.</p>
           <p>Please refresh the page and try again. If this continues, please email <a href="mailto:info@alfrescolearning.co.uk">info@alfrescolearning.co.uk</a>.</p>
           <button commandfor="cpd-content__file-error" command="close" className="cpd-content__button">Close</button>
         </dialog>
