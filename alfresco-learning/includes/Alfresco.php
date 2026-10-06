@@ -213,7 +213,7 @@ class Alfresco
     {
         add_action('wp_enqueue_scripts', function () {
             if (is_singular('al_planning_unit')) {
-                wp_enqueue_script('al-ph-unit', plugin_dir_url(__FILE__) . '../js/phUnit.js');
+                wp_enqueue_script('al-ph-unit', plugin_dir_url(__FILE__) . '../js/phUnit.js', [], '1.1');
             }
         });
 

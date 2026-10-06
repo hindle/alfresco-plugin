@@ -38,6 +38,7 @@ class AJAX
         $this->videoEndpoint();
         $this->trelloWorkshopBoardWebhook();
         $this->sendWelcomeEmailsEndpoint();
+        $this->sendPlanningEmailsEndpoint();
         $this->sendWeatherCheckEmailsEndpoint();
         $this->sendFeedbackEmailEndpoint();
         $this->sendFollowUpEmailEndpoint();
@@ -99,9 +100,13 @@ class AJAX
                     'methods'             => 'GET',
                     'permission_callback' => '__return_true',
                     'callback'            => function (\WP_REST_Request $request) {
-
                         try {
                             $fileUrl = $this->handleDownload($request);
+                        } catch (\Alfresco\Download\AccountLockedException $e) {
+                            $error = $e->getMessage();
+                            $response = new \WP_REST_Response("{'error':'$error'}");
+                            $response->set_status(403);
+                            return $response;
                         } catch (\Exception $e) {
                             $error = $e->getMessage();
                             $response = new \WP_REST_Response("{'error':'$error'}");
@@ -139,10 +144,12 @@ class AJAX
         $outsetaToken = $_COOKIE['Outseta_nocode_accessToken'];
         $file = $params['file'];
 
-        $phDownload = new PHDownload();
+        $planning = new \Alfresco\Download\Planning();
 
         try {
-            $fileUrl = $phDownload->getFileUrl($outsetaToken, $file);
+            $fileUrl = $planning->getFileUrl($outsetaToken, $file);
+        } catch (\Alfresco\Download\AccountLockedException $e) {
+            throw $e;
         } catch (\Exception $e) {
             throw new \Exception('Error retrieving file:' . $e->getMessage());
         }
@@ -254,6 +261,29 @@ class AJAX
                         $handler->sendWelcomeEmails();
 
                         return 'Welcome emails sent';
+                    },
+                ]
+            );
+        });
+    }
+
+    /*
+     * Endpoint to trigger sending of planning emails
+     */
+    private function sendPlanningEmailsEndpoint()
+    {
+        add_action('rest_api_init', function () {
+            register_rest_route(
+                "alfresco/v1",
+                "/send-planning-emails",
+                [
+                    'methods'             => 'GET',
+                    'permission_callback' => '__return_true',
+                    'callback'            => function (\WP_REST_Request $request) {
+                        $handler = new Trello\WorkshopActions();
+                        $handler->sendPlanningEmails();
+
+                        return 'Planning emails sent';
                     },
                 ]
             );

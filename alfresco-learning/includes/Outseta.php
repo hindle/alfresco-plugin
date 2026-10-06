@@ -11,6 +11,10 @@ class Outseta
     private string $apiKey;
     private string $cert;
 
+    const SCHOOL_USER = 'school';
+    const INDIVIDUAL_USER = 'individual';
+    const DEFAULT_USER = 'default';
+
     public function __construct()
     {
         $this->setupOutseta();
@@ -82,5 +86,90 @@ class Outseta
         }
 
         return false;
+    }
+
+    /*
+     * Log a custom event in Outseta
+     */
+    public function logDownloadEvent(string $userId, string $file)
+    {
+        $url = "https://alfresco-learning.outseta.com/api/v1/activities/customactivity";
+
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->apiKey
+        ]];
+
+        $client = new Client($headers);
+        $body = ['json' => [
+            "Title" => "Planning download",
+            "Description" => "Downloaded " . $file . " planning file",
+            "EntityType" => 2,
+            "EntityUid" => $userId
+        ]];
+
+        try {
+            $response = $client->request('POST', $url, $body);
+        } catch (\Exception $e) {
+            error_log('Error calling Outseta: ' . $e->getMessage());
+        }
+    }
+
+    /*
+     * Get the user type based on their subscription plan
+     */
+    public function getUserType(string $accountId)
+    {
+        $url = "https://alfresco-learning.outseta.com/api/v1/crm/accounts/" . $accountId . "?fields=CurrentSubscription.Plan.Uid";
+
+        $headers = ['headers' => [
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->apiKey
+        ]];
+
+        $client = new Client($headers);
+
+        try {
+            $response = $client->request('GET', $url);
+        } catch (\Exception $e) {
+            error_log('Error calling Outseta: ' . $e->getMessage());
+            return null;
+        }
+
+        $body = (string) $response->getBody();
+        $data = json_decode($body);
+        $planUid = $data->CurrentSubscription->Plan->Uid ?? null;
+
+        if (is_null($planUid)) {
+            throw new \Exception('Plan details not available for user');
+        }
+
+        switch ($planUid) {
+            case 'B9lwBzQ8':
+            case 'wQX0PlQK':
+            case 'gWKe6eQp':
+            case 'VmAkaD9a':
+            case 'xmerwPQV':
+                return self::INDIVIDUAL_USER;
+            case 'z9MzGKW4':
+            case 'DmwAD294':
+            case 'A93Vv1Q0':
+            case 'nmD6G09y':
+            case 'BWzNj3WE':
+            case 'ZmNjdwm2':
+            case '7maPj1WE':
+            case '496n1d9X':
+            case 'y9qrM2WA':
+            case 'L9PZNnmJ':
+            case 'xmeYAPmV':
+            case 'jW78YZmq':
+            case 'EWByvb9r':
+            case 'B9lDRz98':
+            case 'rQVoYl96':
+            case 'ZmN723Q2':
+                return self::SCHOOL_USER;
+            default:
+                return self::DEFAULT_USER;
+        }
     }
 }

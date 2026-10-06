@@ -5,14 +5,12 @@ namespace Alfresco\Trello;
 class WorkshopActions
 {
     /*
-     * Send the welcome emails - triggered by wordpress cron job
+     * Send the welcome emails - triggered by cron job
      */
     public function sendWelcomeEmails()
     {
-        // Get the custom field details for the card
         $trello = new Client();
 
-        // Get all the cards in the "Send welcome email" list
         try {
             $cards = $trello->getCardsInList(Constants::WORKSHOP_SEND_WELCOME_EMAIL_LIST_ID);
         } catch (\Exception $e) {
@@ -41,8 +39,7 @@ class WorkshopActions
                     throw new \Exception('Workshop date is not set');
                 }
             } catch (\Exception $e) {
-                // Disabling until the data is populated for older cards
-                //$this->sendErrorEmail("welcome", "Custom fields contain invalid or missing data.", $cardId);
+                $this->sendErrorEmail("welcome", "Custom fields contain invalid or missing data.", $cardId);
                 continue;
             }
 
@@ -60,7 +57,8 @@ class WorkshopActions
 
                 try {
                     $trello->updateWelcomeEmailSent($cardId);
-                    $trello->moveCardToList($cardId, Constants::WORKSHOP_WEATHER_CHECK_LIST_ID);
+                    $trello->addCommentToCard($cardId, "Welcome email sent to " . $workshopCard->teacherEmail . " on " . $currentDate->format('d/m/Y'));
+                    $trello->moveCardToList($cardId, Constants::WORKSHOP_PLANNINNG_EMAIL_LIST_ID);
                 } catch (\Exception $e) {
                     $this->sendErrorEmail("welcome", "Failed to update Trello card after sending welcome email: " . $e->getMessage(), $cardId);
                     continue;
@@ -88,7 +86,6 @@ class WorkshopActions
         if (empty($sessionContent)) {
             $this->sendErrorEmail("booking confirmation", "No session information provided in custom fields.", $cardId);
             throw new \Exception('At least one session custom field must be filled out.');
-            return;
         }
 
         $spaceRequirementsContent = "";
@@ -148,13 +145,123 @@ class WorkshopActions
     }
 
     /*
+     * Send the email containing the follow on planning link - triggered by cron job
+     */
+    public function sendPlanningEmails()
+    {
+        $trello = new Client();
+
+        try {
+            $cards = $trello->getCardsInList(Constants::WORKSHOP_PLANNINNG_EMAIL_LIST_ID);
+        } catch (\Exception $e) {
+            $this->sendErrorEmail("planning", "System error.", "");
+            throw $e;
+        }
+
+        // If no cards, bomb out
+        if (empty($cards)) {
+            return;
+        }
+
+        foreach ($cards as $card) {
+            $cardId = $card['id'];
+
+            try {
+                $customFieldDetails = $trello->getCardCustomFields($cardId);
+            } catch (\Exception $e) {
+                $this->sendErrorEmail("planning", "System error.", $cardId);
+                continue;
+            }
+
+            try {
+                $workshopCard = new WorkshopCard($customFieldDetails);
+                if (!$workshopCard->date) {
+                    throw new \Exception('Workshop date is not set');
+                }
+            } catch (\Exception $e) {
+                $this->sendErrorEmail("planning", "Custom fields contain invalid or missing data.", $cardId);
+                continue;
+            }
+
+            // Check if the workshop date is within 1 week
+            $currentDate = new \DateTime();
+            $workshopDate = new \DateTime($workshopCard->rawDate);
+            $interval = $currentDate->diff($workshopDate);
+            if ($interval->days <= 7 && !$interval->invert) {
+                $this->sendPlanningEmail($workshopCard);
+
+                try {
+                    $trello->addCommentToCard($cardId, "Follow on planning email sent to " . $workshopCard->teacherEmail . " on " . $currentDate->format('d/m/Y'));
+                    $trello->moveCardToList($cardId, Constants::WORKSHOP_WEATHER_CHECK_LIST_ID);
+                } catch (\Exception $e) {
+                    $this->sendErrorEmail("planning", "Failed to update Trello card after sending planning email: " . $e->getMessage(), $cardId);
+                    continue;
+                }
+            }
+        }
+    }
+
+    /*
+     * Send the planning email
+     */
+    private function sendPlanningEmail(WorkshopCard $card)
+    {
+        switch ($card->workshopType) {
+            case Constants::WORKSHOP_TYPE_CASTLES:
+                $workshopType = "Castles";
+                $lessonPlanUrl = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Castles+-+Alfresco+workshop+follow-up.pdf";
+                break;
+            case Constants::WORKSHOP_TYPE_SPACE:
+                $workshopType = "Neil Armstrong";
+                $lessonPlanUrl = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Neil+Armstrong+(Explorers)+-+Alfresco+workshop+follow-up.pdf";
+                break;
+            case Constants::WORKSHOP_TYPE_GFOL:
+                $workshopType = "Great Fire of London";
+                $lessonPlanUrl = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Great+Fire+Of+London+-+Alfresco+workshop+follow-up.pdf";
+                break;
+            case Constants::WORKSHOP_TYPE_SEASIDE:
+                $workshopType = "Seaside";
+                $lessonPlanUrl = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Seaside+-+Alfresco+workshop+follow-up.pdf";
+                break;
+            default:
+                $workshopType = "";
+                $lessonPlanUrl = "https://alfrescolearning.co.uk";
+        }
+
+        $content = "<p>Hi " . $card->teacherName . ",</p>" .
+            "<p>We're dropping back into your inbox with a little gift you can use to follow on from your workshop happening soon... a FREE outdoor lesson plan that follows on from your class experience with us!</p>" .
+            "<p>What to expect:</p>" .
+            "<ul>" .
+            "<li>Low resource</li>" .
+            "<li>Easy to deliver</li>" .
+            "<li>Curriculum-linked</li>" .
+            "<li>Packed with fun</li>" .
+            "<li>Resources included</li>" .
+            "</ul>" .
+            "<p>If you'd like to teach your own outdoor lesson about " . $workshopType . ", download the lesson plan and step outside with your class!</p>" .
+            "<p><a href='" . $lessonPlanUrl . "'>Follow on lesson plan</a></p>" .
+            "<p>P.S. If you love this you may well enjoy our other curriculum-linked outdoor lesson plans, all available inside The Alfresco Hub. If you haven't seen it before make sure you grab our <a href='https://www.alfrescolearning.co.uk/planning-hub/free-sample-lesson-plans/'>sample bundle</a> on the website for more outdoor learning FREEBIES!</p>" .
+            "<p>Kind regards,</p>" .
+            "<p>Alfresco Learning</p>";
+
+        // Send the email
+        $to = $card->teacherEmail;
+        $headers = [];
+        $headers[] = "Reply-To: bookings@alfrescolearning.co.uk";
+        $headers[] = "From: Alfresco Learning Bookings <info@alfrescolearning.co.uk>";
+        $headers[] = "Content-Type: text/html; charset=UTF-8";
+        $subject = "\xF0\x9F\x8C\xBF The fun doesn't have to stop with us! \xF0\x9F\x8C\xBF";
+        wp_mail($to, $subject, $content, $headers);
+    }
+
+    /*
      * Send the weather check emails
      */
     public function sendWeatherCheckEmails()
     {
         $trello = new Client();
 
-        // Get all the cards in the "Send welcome email" list
+        // Get all the cards in the "Send weather check email" list
         try {
             $cards = $trello->getCardsInList(Constants::WORKSHOP_WEATHER_CHECK_LIST_ID);
         } catch (\Exception $e) {
@@ -186,8 +293,7 @@ class WorkshopActions
                     throw new \Exception('Workshop leader email is not set');
                 }
             } catch (\Exception $e) {
-                // Disabling until the data is populated for older cards
-                //$this->sendErrorEmail("weather check", "Custom fields contain invalid or missing data.", $cardId);
+                $this->sendErrorEmail("weather check", "Custom fields contain invalid or missing data.", $cardId);
                 continue;
             }
 

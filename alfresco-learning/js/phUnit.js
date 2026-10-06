@@ -11,19 +11,28 @@ function phUnitSetup() {
       event.preventDefault();
 
       buttonTrigger.style.pointerEvents = "none";
-      // It's not pretty, but it works most of the time.
-      // Done this way because the error container has not had the id consistently applied
-      // for each of the pages and rows.
-      // Sometimes it pulls the document instead of the parent document.
-      const parentContainer = event.target.parentElement.parentElement.parentElement.parentElement.parentElement;
-      const errorContainer = parentContainer.children[2].children[0];
-      errorContainer.innerHTML = '';
+
+      // Create a dialog for use in the event of an error
+      const errorDialog = document.createElement('dialog');
+      document.body.appendChild(errorDialog);
+      errorDialog.style = "border: solid #F99584 5px;";
+      errorDialog.innerHTML = '<button style="display: inline-block; padding: 12px 24px; background-color: #F99584; color: #FFF; text-decoration: none; font-family: Roboto; font-weight: 500; font-size: 13px; letter-spacing: 2.5px; line-height: 1; text-transform: uppercase; border: none;" class="close-btn">Close</button>';
+      errorDialog.querySelector('.close-btn').addEventListener('click', () => {
+        errorDialog.close();
+      });
 
       const loggedIn = outsetaIsLoggedIn();
       if (!loggedIn) {
         console.log("not logged in, redirecting to login");
         window.location.href = "/planning-hub/signup";
         return;
+      }
+
+      class ForbiddenError extends Error {
+        constructor(message) {
+          super(message);
+          this.name = 'ForbiddenError';
+        }
       }
 
       const file = container.getAttribute("data-al_file");
@@ -38,9 +47,12 @@ function phUnitSetup() {
 
       fetch(url, requestParams)
         .then((response) => {
-          if (!response.ok) {
+          if (response.status === 403) {
+            throw new ForbiddenError('Download limit exceeded.');
+          } else if (!response.ok) {
             throw new Error(`ajax call failed: ${response.status}`);
           }
+
           buttonTrigger.style.pointerEvents = "auto";
           return response.json();
         })
@@ -57,8 +69,16 @@ function phUnitSetup() {
         })
         .catch((error) => {
           console.error(error.message);
-          errorContainer.innerHTML = '<p style="color: red; background: white; padding: 5px;">An error occurred, the Alfresco Hub team have been notified and will look into this.</p>';
-            buttonTrigger.style.pointerEvents = "auto";
+
+          if (error instanceof ForbiddenError) {
+            errorDialog.insertAdjacentHTML('afterbegin', '<p>You have reached your download limit as per our <a href="/terms-conditions/" style="color: #F99584; text-decoration: underline;">fair use policy</a>.</p><p>You will be able to download files again in 24 hours.</p><p>Repeated breaches of this policy may result in your subscription being cancelled.</p>');
+            errorDialog.showModal();
+          } else {
+            errorDialog.insertAdjacentHTML('afterbegin', '<p>An error has occurred when downloading the file. Please try again.</p><p>If this issue persists, please <a href="/contact" style="color: #F99584; text-decoration: underline; hover: color: #F99584;">contact us</a>.</p>');
+            errorDialog.showModal();
+          }
+
+          buttonTrigger.style.pointerEvents = "auto";
         });
     });
   });
