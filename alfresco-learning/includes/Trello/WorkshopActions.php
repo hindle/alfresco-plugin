@@ -89,18 +89,23 @@ class WorkshopActions
         }
 
         $spaceRequirementsContent = "";
+        $socialStoryLink = "";
         switch ($card->workshopType) {
             case Constants::WORKSHOP_TYPE_SPACE:
                 $spaceRequirementsContent = "<li>Neil Armstrong - ensure access to your school field (minimum 20 metres).</li>";
+                $socialStoryLink = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Space+NA+Social+story.pdf";
                 break;
             case Constants::WORKSHOP_TYPE_SEASIDE:
                 $spaceRequirementsContent = "<li>Seaside - ensure access to a level, open space and a working outdoor tap with a hose connector attached.</li>";
+                $socialStoryLink = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Seaside+Social+story.pdf";
                 break;
             case Constants::WORKSHOP_TYPE_CASTLES:
                 $spaceRequirementsContent = "<li>Castles - ensure access to a flat, open space.</li>";
+                $socialStoryLink = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Castles+Social+story.pdf";
                 break;
             case Constants::WORKSHOP_TYPE_GFOL:
                 $spaceRequirementsContent = "<li>Great Fire of London - ensure access to an area of real grass.</li>";
+                $socialStoryLink = "https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/GFOL+Social+story.pdf";
                 break;
         }
 
@@ -128,6 +133,7 @@ class WorkshopActions
             "<p><a href='https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Risk+assessment.pdf'>Risk assessment</a></p>" .
             "<p><a href='https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Warm+weather+-+parent+letter.pdf'>Warm weather - parent letter</a></p>" .
             "<p><a href='https://alfresco-free-downloads.s3.eu-west-1.amazonaws.com/Cold+weather+-+parent+letter.pdf'>Cold weather - parent letter</a></p>" .
+            "<p><a href='" . $socialStoryLink . "'>Social story</a></p>" .
             "<p>We hope you enjoy a fantastic workshop with your classes!</p>" .
             "<p>Many thanks,</p>" .
             "<p>Team Alfresco Learning</p>";
