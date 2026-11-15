@@ -110,7 +110,7 @@ class Planning
             // Send email to admin with the details
             $to = ["ah.hindle@gmail.com", "info@alfrescolearning.co.uk"];
             $subject = "[INFO] Outseta plan missing from download limit check";
-            $content = "A user has downloaded a file using an Outseta plan not defined in the account locking check. User ID: " . $userId . ".\n\n";
+            $content = "A user has downloaded a file using an Outseta plan not defined in the account locking check. User: <a href='https://alfresco-learning.outseta.com/#/app/crm/people/" . $userId . "'>User details in Outseta</a>.\n\n";
             wp_mail($to, $subject, $content);
 
             return false;
@@ -128,7 +128,7 @@ class Planning
             // Send email to admin with the details
             $to = ["ah.hindle@gmail.com", "info@alfrescolearning.co.uk"];
             $subject = "[INFO] User reached download limit";
-            $content = "A user has exceeded the download limit. User ID: " . $userId . ".\n\n";
+            $content = "A user has exceeded the download limit. User: <a href='https://alfresco-learning.outseta.com/#/app/crm/people/" . $userId . "'>User details in Outseta</a>.\n\n";
             wp_mail($to, $subject, $content);
 
             return true;

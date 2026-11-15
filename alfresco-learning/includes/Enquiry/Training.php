@@ -7,19 +7,23 @@ use Alfresco\Trello\Constants;
 
 class Training
 {
-    private $contactName;
-    private $contactEmail;
-    private $schoolName;
-    private $schoolAddress;
-    private $schoolPostcode;
-    private $bookingDate;
-    private $bookingDetails;
-    private $trainingSession;
-    private $referrer;
-    private $referrerOther;
-    private $referrerFriend;
+    private string $contactName;
+    private string $contactEmail;
+    private string $schoolName;
+    private string $schoolAddress;
+    private string $schoolPostcode;
+    private string $bookingDate;
+    private string $bookingDetails;
+    private string $trainingSession;
+    private string $referrer;
+    private string $referrerOther;
+    private string $referrerFriend;
+    private array $trainingOutcome;
+    private array $outdoorProvision;
+    private array $outdoorSpace;
+    private string $hubMember;
 
-    public function __construct($data)
+    public function __construct(object $data)
     {
         $this->contactName = $data->contactName;
         $this->contactEmail = $data->contactEmail;
@@ -30,8 +34,12 @@ class Training
         $this->bookingDetails = $data->bookingDetails;
         $this->trainingSession = $data->trainingSession;
         $this->referrer = $data->referrer;
-        $this->referrerOther = $data->referrerOther;
-        $this->referrerFriend = $data->referrerFriend;
+        $this->referrerOther = $data->referrerOther ?? '';
+        $this->referrerFriend = $data->referrerFriend ?? '';
+        $this->trainingOutcome = $data->trainingOutcome ?? [];
+        $this->outdoorProvision = $data->outdoorProvision ?? [];
+        $this->outdoorSpace = $data->outdoorSpace ?? [];
+        $this->hubMember = $data->hubMember ?? '';
     }
 
     /*
@@ -66,7 +74,95 @@ class Training
                 break;
         }
 
-        $trelloContent = $this->getTrelloContent($trainingSession);
+        $trainingOutcome = "";
+        if (!empty($this->trainingOutcome)) {
+            foreach ($this->trainingOutcome as $outcome) {
+                switch ($outcome) {
+                    case 'build-confidence':
+                        $trainingOutcome .= "- Build staff confidence in teaching outdoors.\n";
+                        break;
+                    case 'practical-ideas':
+                        $trainingOutcome .= "- Give staff practical ideas they can use straight away.\n";
+                        break;
+                    case 'develop-outdoor-learning':
+                        $trainingOutcome .= "Develop outdoor learning across the whole school.\n";
+                        break;
+                    case 'better-use-grounds':
+                        $trainingOutcome .= "- Make better use of our school grounds.\n";
+                        break;
+                    case 'improve-engagement':
+                        $trainingOutcome .= "- Improve engagement and inclusion for children.\n";
+                        break;
+                    case 'develop-existing-provision':
+                        $trainingOutcome .= "- Develop our existing outdoor learning provision.\n";
+                        break;
+                    case 'other':
+                        $trainingOutcome .= "- Something else\n";
+                        break;
+                }
+            }
+        }
+
+        $outdoorProvision = "";
+        if (!empty($this->outdoorProvision)) {
+            foreach ($this->outdoorProvision as $provision) {
+                switch ($provision) {
+                    case 'just-starting':
+                        $outdoorProvision .= "- We're just getting started and don't currently teach much outdoors.\n";
+                        break;
+                    case 'inconsistent':
+                        $outdoorProvision .= "- Some teachers are confident, but practice is inconsistent across the school.\n";
+                        break;
+                    case 'developing':
+                        $outdoorProvision .= "- We already teach outdoors but would like to develop this further.\n";
+                        break;
+                    case 'established':
+                        $outdoorProvision .= "- We have established outdoor provision but want to embed more curriculum learning.\n";
+                        break;
+                    case 'forest-school':
+                        $outdoorProvision .= "- We've previously had Forest School or outdoor learning provision and want to take a different approach.\n";
+                        break;
+                    case 'other':
+                        $outdoorProvision .= "- Other / not sure.\n";
+                        break;
+                }
+            }
+        }
+
+        $outdoorSpace = "";
+        if (!empty($this->outdoorSpace)) {
+            foreach ($this->outdoorSpace as $space) {
+                switch ($space) {
+                    case 'school-field':
+                        $outdoorSpace .= "- School field\n";
+                        break;
+                    case 'playground':
+                        $outdoorSpace .= "- Playground\n";
+                        break;
+                    case 'grass-natural-areas':
+                        $outdoorSpace .= "- Grass or natural areas\n";
+                        break;
+                    case 'woodland':
+                        $outdoorSpace .= "- Woodland\n";
+                        break;
+                    case 'outdoor-classroom':
+                        $outdoorSpace .= "- Outdoor classroom / dedicated outdoor area\n";
+                        break;
+                    case 'very-limited':
+                        $outdoorSpace .= "- Very limited outdoor space\n";
+                        break;
+                    case 'nearby-green-space':
+                        $outdoorSpace .= "- Access to nearby green space\n";
+                        break;
+                    case 'other':
+                        $outdoorSpace .= "- Other / not sure.\n";
+                        break;
+                }
+            }
+        }
+
+
+        $trelloContent = $this->getTrelloContent($trainingSession, $trainingOutcome, $outdoorProvision, $outdoorSpace);
         $cardTitle = $this->schoolName . ' - ' . $trainingSession;
 
         $trello = new Trello();
@@ -83,7 +179,7 @@ class Training
     /*
      * Get the content to be used in the trello card description
      */
-    private function getTrelloContent($trainingSession)
+    private function getTrelloContent(string $trainingSession, string $trainingOutcome, string $outdoorProvision, string $outdoorSpace)
     {
         $referrerDetails = '';
         if ($this->referrer === 'other') {
@@ -110,6 +206,18 @@ class Training
             "**Details** \n" .
             $this->bookingDetails . "\n" .
             "\n" .
+            "**Training outcome** \n" .
+            $trainingOutcome .
+            "\n" .
+            "**Outdoor provision** \n" .
+            $outdoorProvision .
+            "\n" .
+            "**Outdoor space** \n" .
+            $outdoorSpace .
+            "\n" .
+            "**Hub member** \n" .
+            $this->hubMember . "\n" .
+            "\n" .
             "**Referrer** \n" .
             "Type: " . $this->referrer . "\n" .
             $referrerDetails;
@@ -120,7 +228,7 @@ class Training
     /*
      * Send the email notification
      */
-    private function sendEmail($trainingSession, $cardId)
+    private function sendEmail(string $trainingSession, string $cardId)
     {
         $to = ["info@alfrescolearning.co.uk"];
         $subject = "New training enquiry - " . $this->schoolName;
